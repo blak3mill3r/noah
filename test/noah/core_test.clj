@@ -9,22 +9,22 @@
 
 (defn topology []
   (let [b (sut/streams-builder)
-        text (-> b (sut/stream "text" #:consumed{:k :string :v :string}))]
+        text (-> b (sut/stream "text" #:serdes{:k :string :v :string}))]
     (-> text
         (sut/flat-map-values #(str/split % #"\s+"))
         (sut/group-by #(-> %2))
         sut/count
         sut/to-stream
-        (sut/to "word-counts" #:produced{:k :string :v :long}))
+        (sut/to "word-counts" #:serdes{:k :string :v :long}))
     (sut/build b)))
 
 (t/use-fixtures :once
   (tu/topology-fixture
    (topology)
-   {"bootstrap.servers" "localhost:9091"
-    "application.id" "noah-test"
-    "default.key.serde"  (.. Serdes String getClass getName)
-    "default.value.serde" (.. Serdes String getClass getName)}))
+   {"bootstrap.servers"   "localhost:9091"
+    "application.id"      "noah-test"
+    "default.key.serde"   (.getName (.getClass (sut/serdes :string)))
+    "default.value.serde" (.getName (.getClass (sut/serdes :string)))}))
 
 (deftest can-count
   (*produce* "text" nil "some word some more word")

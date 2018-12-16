@@ -12,7 +12,7 @@
   (:require [clojure.reflect :as ref]
             [camel-snake-kebab.core :refer [->kebab-case]]
             [noah.fn-wrap :as fn-wrap]
-            [noah.map-wrap]
+            [noah.serdes]
             [clojure.string :as str]
             [franzy.serialization.nippy.serializers :refer [nippy-serializer]]
             [franzy.serialization.nippy.deserializers :refer [nippy-deserializer]]
@@ -28,7 +28,7 @@
    [org.apache.kafka.streams.processor TopicNameExtractor]
    [java.util Collections Map Properties]))
 
-(potemkin/import-vars [noah.map-wrap consumed produced serialized])
+(potemkin/import-vars [noah.serdes serdes consumed produced serialized])
 
 #_(ref/reflect TransformerSupplier)
 #_(ref/reflect Transformer)
