@@ -1,5 +1,5 @@
 (ns noah.test-utils
-  (:require [noah.map-wrap :refer [ serdes ]])
+  (:require [noah.core :refer [ serdes ]])
   (:import
    [org.apache.kafka.streams TopologyTestDriver StreamsConfig ]
    [org.apache.kafka.streams.test ConsumerRecordFactory]
