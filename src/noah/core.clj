@@ -46,8 +46,8 @@
   (Materialized/as store-name))
 
 (defn kafka-streams
-  [builder config]
-  (KafkaStreams. (.build builder) (StreamsConfig. config)))
+  [topology config]
+  (KafkaStreams. topology (StreamsConfig. config)))
 
 (defn streams-builder [] (StreamsBuilder.))
 
