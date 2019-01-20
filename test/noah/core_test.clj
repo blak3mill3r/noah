@@ -27,7 +27,7 @@
     "default.value.serde" (.getName (.getClass (sut/serdes :string)))}))
 
 (deftest can-count
-  (*produce* "text" nil "some word some more word")
+  (*produce* "text" :string :string nil "some word some more word")
   (doseq [[a b] (map vector
                      (output-topic-seq "word-counts" :string :long)
                      [["some" 1] ["word" 1] ["some" 2] ["more" 1] ["word" 2]])]

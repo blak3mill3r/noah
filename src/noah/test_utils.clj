@@ -9,8 +9,11 @@
 (def ^:dynamic *driver* nil)
 (def ^:dynamic *produce* nil)
 
-;; FIXME make it like    :string :edn :long
-(defn record-factory [key-ser val-ser] (ConsumerRecordFactory. key-ser val-ser))
+(defn record-factory
+  [topic key-ser val-ser]
+  (ConsumerRecordFactory. topic
+                          (.serializer (serdes key-ser))
+                          (.serializer (serdes val-ser))))
 
 (defn topology-test-driver [topology props]
   (TopologyTestDriver. topology
@@ -28,9 +31,12 @@
 (defn topology-fixture
   [topology properties]
   (fn [test-fn]
-    (let [driver (topology-test-driver topology properties)
-          rf (record-factory (.. Serdes String serializer) (.. Serdes String serializer))]
-      (binding [*driver* driver *produce* (fn [topic k v] (->> (.create rf topic k v) (.pipeInput driver)))]
+    (let [driver (topology-test-driver topology properties)]
+      (binding [*driver* driver
+                *produce* (fn [topic k-ser v-ser k v]
+                            (.pipeInput driver
+                                        (.create (record-factory topic k-ser v-ser)
+                                                 topic k v)))]
         (try
           (test-fn)
           ;; when completed, make sure your tests close() the driver to release all resources and processors.
