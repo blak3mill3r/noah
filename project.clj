@@ -1,4 +1,4 @@
-(def kafka-version "2.0.0")
+(def kafka-version "2.2.0")
 
 (defproject blak3mill3r/noah "0.0.0"
   :description "Kafka Streams in Clojure"
@@ -21,6 +21,7 @@
             [lein-changelog "0.3.2"]]
   :profiles {:dev {:dependencies [[com.rpl/specter "1.1.2"]
                                   ;; TODO extract javadoc comments, and method parameter names, for clojure docstrings
+                                  ;; alternatively make a Javadoc doclet implementation that outputs EDN (which someone ought to do anyway)
                                   [com.github.javaparser/javaparser-core "3.7.1"]]
                    :source-paths ["src" "dev"]}
              :test {:dependencies [[org.apache.kafka/kafka-streams-test-utils ~kafka-version]]}}
