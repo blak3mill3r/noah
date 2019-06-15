@@ -1,34 +1,43 @@
 (ns noah.core-test
+  "The obligatory word-count"
   (:require
    [clojure.test :as t :refer [deftest is]]
-   [noah.core :as sut]
-   [noah.test-utils :as tu :refer [topology-test-driver record-factory *driver* *produce* output-topic-seq]]
-   [clojure.string :as str])
-  (:import
-   [org.apache.kafka.common.serialization Serdes]))
+   [noah.core :as n]
+   [noah.test-utils :as tu :refer [topology-test-driver record-factory *topic* output-topic-seq]]
+   [clojure.string :as str]
+   [noah.fn-wrap :as fn-wrap]))
 
 (defn topology []
-  (let [b (sut/streams-builder)
-        text (-> b (sut/stream "text" #:serdes{:k :string :v :string}))]
+  (let [b (n/streams-builder)
+        text (-> b (n/stream "text"))]
     (-> text
-        (sut/flat-map-values #(str/split % #"\s+"))
-        (sut/group-by #(-> %2))
-        sut/count
-        sut/to-stream
-        (sut/to "word-counts" #:serdes{:k :string :v :long}))
-    (sut/build b)))
+        (n/flat-map-values #(str/split % #"\s+"))
+        (n/group-by #(-> %2))
+        n/count
+        n/to-stream
+        (n/to "word-counts" {::n/value-serde :long}))
+    (n/build b)))
 
 (t/use-fixtures :once
   (tu/topology-fixture
    (topology)
    {"bootstrap.servers"   "localhost:9091"
     "application.id"      "noah-test"
-    "default.key.serde"   (.getName (.getClass (sut/serdes :string)))
-    "default.value.serde" (.getName (.getClass (sut/serdes :string)))}))
+    "default.key.serde"   (.getName (.getClass (n/serdes :string)))
+    "default.value.serde" (.getName (.getClass (n/serdes :string)))}))
 
 (deftest can-count
-  (*produce* "text" :string :string nil "some word some more word")
-  (doseq [[a b] (map vector
-                     (output-topic-seq "word-counts" :string :long)
-                     [["some" 1] ["word" 1] ["some" 2] ["more" 1] ["word" 2]])]
-    (is (= a b))))
+  (let [->text (*topic* "text" :string :string)]
+    (->text nil "it's like going to like count these like words")
+    (doseq [[a b] (map vector
+                       (output-topic-seq "word-counts" :string :long)
+                       [["it's"  1]
+                        ["like"  1]
+                        ["going" 1]
+                        ["to"    1]
+                        ["like"  2]
+                        ["count" 1]
+                        ["these" 1]
+                        ["like"  3]
+                        ["words" 1]])]
+      (is (= a b)))))

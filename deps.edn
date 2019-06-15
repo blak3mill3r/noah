@@ -2,27 +2,23 @@
 
 {:aliases
  {:test
-  {:extra-paths ["test"],
+  {:extra-paths ["test" "classes"]
    :extra-deps
-   {org.clojure/test.check {:mvn/version "RELEASE"},
-    org.apache.kafka/kafka-streams-test-utils {:mvn/version "2.2.0"}}},
+   {org.clojure/test.check {:mvn/version "RELEASE"}
+    org.apache.kafka/kafka-streams-test-utils {:mvn/version "2.2.0"}
+    org.clojure/core.async {:mvn/version "RELEASE"}
+    net.cgrand/xforms {:mvn/version "0.18.2"}}}
   :runner
   {:extra-deps
    {com.cognitect/test-runner
-    {:git/url "https://github.com/cognitect-labs/test-runner",
-     :sha "76568540e7f40268ad2b646110f237a60295fa3c"}},
-   :main-opts ["-m" "cognitect.test-runner" "-d" "test"]},
-  :dev
-  {:extra-deps
-   {com.rpl/specter {:mvn/version "1.1.2"},
-    com.github.javaparser/javaparser-core {:mvn/version "3.7.1"}}}},
+    {:git/url "https://github.com/cognitect-labs/test-runner"
+     :sha "76568540e7f40268ad2b646110f237a60295fa3c"}}
+   :main-opts ["-m" "cognitect.test-runner" "-d" "test"]}}
  :deps
- {org.clojure/clojure {:mvn/version "RELEASE"},
-  net.cgrand/xforms {:mvn/version "0.18.2"},
-  clj-time {:mvn/version "0.15.1"},
-  camel-snake-kebab {:mvn/version "0.4.0"},
-  potemkin {:mvn/version "0.4.5"},
-  org.apache.kafka/kafka-streams {:mvn/version "2.2.0"},
-  org.apache.kafka/kafka-clients {:mvn/version "2.2.0"},
-  com.taoensso/nippy {:mvn/version "2.14.0"},
-  ymilky/franzy-nippy {:mvn/version "0.0.1"}}}
+ {org.clojure/clojure {:mvn/version "1.10.1"}
+  camel-snake-kebab {:mvn/version "0.4.0"}
+  potemkin {:mvn/version "0.4.5"}
+  org.apache.kafka/kafka-streams {:mvn/version "2.2.0"}
+  org.apache.kafka/kafka-clients {:mvn/version "2.2.0"}
+  com.taoensso/nippy {:mvn/version "2.14.0"}
+  com.rpl/specter {:mvn/version "1.1.2"}}}

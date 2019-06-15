@@ -1,21 +1,63 @@
 (ns noah.serdes
+  "There's a lot of room for improvement here. They don't take options, and I haven't thought it all through.
+  You can always build a Serde yourself. `serdes` is a multimethod so it is open to extension."
   (:require
-   [camel-snake-kebab.core :refer [->kebab-case]]
-   [franzy.serialization.nippy.serializers :refer [nippy-serializer]]
-   [franzy.serialization.nippy.deserializers :refer [nippy-deserializer]])
+   [taoensso.nippy :as nippy])
   (:import
-   [org.apache.kafka.common.serialization Serdes Serde]
+   [java.nio.charset StandardCharsets]
+   [org.apache.kafka.common.serialization Serdes Serde Deserializer Serializer]
    [org.apache.kafka.streams.kstream Consumed Produced Serialized]))
 
-(def ^:private edn-serializer (nippy-serializer))
-(def ^:private edn-deserializer (nippy-deserializer))
+(deftype NippyDeserializer [opts]
+  Deserializer
+  (configure [_ _ _])
+  (deserialize [_ _ data] (nippy/thaw data opts))
+  (close [_]))
+
+(deftype NippySerializer [opts]
+  Serializer
+  (configure [_ _ _])
+  (serialize [_ _ data] (nippy/freeze data opts))
+  (close [_]))
+
+(def the-nippy-serializer (NippySerializer. {}))
+(def the-nippy-deserializer (NippyDeserializer. {}))
+
+(deftype NippySerde []
+  Serde
+  (configure [this map b])
+  (close [this])
+  (serializer [this] the-nippy-serializer)
+  (deserializer [this] the-nippy-deserializer))
+
+(deftype EdnSerializer []
+  Serializer
+  (close [o])
+  (configure [this configs key?])
+  (serialize [this topic data]
+    (when data (-> (binding [*print-length* false
+                             *print-level* false]
+                     (prn-str data))
+                   (.getBytes StandardCharsets/UTF_8)))))
+
+(defrecord EdnDeserializer [opts]
+  Deserializer
+  (close [this])
+  (configure [this configs key?])
+  (deserialize [this topic data]
+    (when data
+      (->> (String. data StandardCharsets/UTF_8)
+           (clojure.edn/read-string opts)))))
+
+(def the-edn-serializer (EdnSerializer.))
+(def the-edn-deserializer (EdnDeserializer. {}))
 
 (deftype EdnSerde []
   Serde
   (configure [this map b])
   (close [this])
-  (serializer [this] edn-serializer)
-  (deserializer [this] edn-deserializer))
+  (serializer [this] the-edn-serializer)
+  (deserializer [this] the-edn-deserializer))
 
 ;; `serdes` is a multimethod in order to be open to extension
 (defmulti serdes identity)
@@ -29,19 +71,5 @@
 (defmethod serdes :int          [_] (Serdes/Integer))
 (defmethod serdes :double       [_] (Serdes/Double))
 (defmethod serdes :float        [_] (Serdes/Float))
+(defmethod serdes :nippy        [_] (NippySerde.))
 (defmethod serdes :edn          [_] (EdnSerde.))
-
-(defmacro defserdeswrapper [class-sym wrap-method]
-  (let [fn-name (->kebab-case class-sym)]
-    `(defn ~fn-name [~'o]
-       (cond (instance? ~class-sym ~'o) ~'o
-             (map? ~'o) (let [{:keys [serdes/key serdes/value serdes/k serdes/v]} ~'o]
-                          (.. ~class-sym (~wrap-method
-                                          (serdes (or ~'k ~'key))
-                                          (serdes (or ~'v ~'value)))))
-             true (throw (ex-info ~(str "Need a serdes map or an instance of " (.getName (ns-resolve *ns* class-sym))) {:got ~'o})))) ))
-
-;; several trivially different Java types for passing Serdes around...
-(defserdeswrapper Consumed with)
-(defserdeswrapper Produced with)
-(defserdeswrapper Serialized with)

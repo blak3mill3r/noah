@@ -1,3 +1,5 @@
+[![streams animation][streams]](http://erdalinci.com/)
+
 # noah
 > (makes ark fast)
 >
@@ -7,62 +9,80 @@
 [![codecov](https://codecov.io/gh/blak3mill3r/noah/branch/master/graph/badge.svg)](https://codecov.io/gh/blak3mill3r/noah)
 [![Clojars Project](https://img.shields.io/clojars/v/noah.svg)](https://clojars.org/noah)
 
+This is not on Clojars yet.
+
 ```clj
-[noah "0.0.0"]
+blak3mill3r/noah {:git/url "https://github.com/blak3mill3r/noah" :sha "look it up"}
 ```
 
 ## Why?
 
-Kafka and Clojure seem like natural companions, both emphasizing immutability. Kafka Streams is "a client library for building applications and microservices, where the input and output data are stored in Kafka cluster".
+Kafka and Clojure seem like natural companions, both emphasizing immutability and the primacy of data.
 
-With Clojure's Java interop, it's pretty straightforward to implement a Kafka Streams application in Clojure. It's just cumbersome and gross, littered with plenty of `proxy`s to provide something like a `KeyValueMapper`, just to `map` some Clojure code over a stream. Let us abstract over the Javaness of the API, while not diverging from that API very dramatically, so that we can just use Clojure functions and data with a minimum of fuss.
+#### What's inside?
 
-This may serve as a starting point for something better, like a pure-data representation of topologies and two-way translation from Clojure data, but first there are some simple interface wrappers which assume very little and clean things up a lot.
-
-## It looks like this
-
-```clojure
-(require '[noah.core :as n])
-(let [b (n/streams-builder)
-        text (-> b (n/stream "text" #:serdes{:k :string :v :string}))]
-    (-> text
-        (n/flat-map-values #(str/split % #"\s+"))
-        (n/group-by #(-> %2))
-        n/count
-        n/to-stream
-        (n/to "word-counts" #:serdes{:k :string :v :long}))
-    (n/build b))
-```
-
-## Goals
-
-* Correctness
-* Simplicity
-* Common things should be simple and intuitive for Clojure users
-* Uncommon things should be possible (the library should not hide anything about the underlying API)
+* A Clojure interface for building topologies and running an app using the high-level Streams API
+  * Clojure functions work on streams/tables
+  * maps to provide options
+  * surprisingly complete (it is generated reflectively)
+* A few serialization choices including [edn](https://github.com/edn-format/edn) and [nippy](https://github.com/ptaoussanis/nippy)
+* Test utilities exposing `TopologyTestDriver`
+* A macro to ease the definition of a `Transformer`
+  * Write access to `StateStore`s
+  * Punctuations
+* Transducers
+  * Fault-tolerant stateful transducers
 
 ## Status
 
-Largely untested, probably dangerous, but working (with `2.0` cluster and client libraries).
+Working (with `2.0` cluster and `2.2` client libraries). Probably more interesting than useful at this point. This is a young project which is far from battle-tested and there are some inadequacies.
 
-## Usage
+### Kicking the tires
 
-Well, you'll need to declare a dependency on `noah` in your `project.clj`
+Clone this repo, then try
 
-```clojure
-[blak3mill3r/noah "0.0.0"]
+```bash
+clj aot.clj
+clj -A:test:runner
 ```
 
-as well as a dependency on the Kafka Streams client library, and potentially also the Kafka client library. The version is up to you, but `noah` uses Java reflection to generate the wrapper code with a macro, and this macro was expanded reflecting against the `2.0.0` version.
+### Usage
 
-```clojure
-[org.apache.kafka/kafka-streams "2.0.0"]
-[org.apache.kafka/kafka-clients "2.0.0"]
-```
+See the [intro](doc/intro.md) and the [tests](test/noah/).
 
-## License
+At this time no example app code is provided.
 
-Copyright © 2018 Blake Miller
+:warning: If you want to make an app, you will want to AOT at least `noah.serdes`
+
+-------------
+
+### Inadequacies
+
+* There are some gaps in the wrapping, where you would still have to use ugly interop
+  * Good news: *all signatures of all public methods are exposed*
+  * Bad news: some types have no sugar; you should be able to get an idea from the docstrings
+* No sugar for `Processor`, only `Transformer`
+* Stateful transducers must be rewritten in order to instrument their state construction
+* can't pass reader options for edn serialization, nor can you pass nippy options (well, you can, but it's DIY)
+* probably a lot more, feel free to point them out
+
+### Reporting bugs
+
+Please open an issue on Github if you spot something amiss.
+
+### Contributing
+
+If you find it useful or interesting, I would love to hear about it. PRs are very welcome. It would be great to see a whole lot more transducers get added. I would also welcome feedback and discussion.
+
+### Acknowledgements
+
+A tip of the hat is graciously offered to Bobby Calderwood, in whose experiments with [KStream transducers](https://github.com/bobby/kafka-streams-clojure) I found much inspiration.
+
+### License
+
+Copyright © 2018, 2019 Blake Miller
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
+
+[streams]: streams.gif

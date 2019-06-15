@@ -6,8 +6,8 @@
   Also, these helpers will pass through an instance of the type unchanged; this means you can use noah with Kafka Streams Java code."
   (:require [camel-snake-kebab.core :refer [->kebab-case]]
             [clojure.reflect :as ref])
-  (:import [org.apache.kafka.streams.kstream Merger ValueJoiner KeyValueMapper ValueMapper Predicate Reducer Initializer Aggregator ValueMapperWithKey]
-           [org.apache.kafka.streams.processor TopicNameExtractor]))
+  (:import [org.apache.kafka.streams.kstream ForeachAction Merger ValueJoiner KeyValueMapper ValueMapper Predicate Reducer Initializer Aggregator ValueMapperWithKey]
+           [org.apache.kafka.streams.processor TopicNameExtractor Punctuator]))
 
 (defmacro defconverter
   "Expands into the definition of a converter fn which will return an instance of `type` (a symbol representing a java class).
@@ -32,9 +32,11 @@
 (defconverter Initializer 0)
 (defconverter Aggregator 3)
 (defconverter Reducer 2)
+(defconverter ForeachAction 2)
 (defconverter Merger 3)
 (defconverter Predicate 2 test boolean)
 (defconverter TopicNameExtractor 3 extract str)
+(defconverter Punctuator 1 punctuate)
 
 ;; https://stackoverflow.com/questions/1696693/clojure-how-to-find-out-the-arity-of-function-at-runtime
 (defn arity
@@ -76,4 +78,18 @@
     
 
     )
+  ;; have this already:
+  (defmethod
+    transform
+    [:noah.core/stream
+     org.apache.kafka.streams.kstream.TransformerSupplier
+     java.lang.String]
+    [this a vararg]
+    (.transform
+     this
+     a
+     (into-array
+      java.lang.String
+      (clojure.core/map identity vararg))))
   )
+
