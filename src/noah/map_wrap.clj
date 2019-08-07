@@ -17,6 +17,8 @@
   (:import [org.apache.kafka.common.serialization Serdes Serde Deserializer Serializer]
            [org.apache.kafka.streams.kstream Consumed Produced Serialized Materialized]))
 
+(declare produced consumed serialized materialized)
+
 ;;; Implementation details
 (defn- withy-name->noah-keyword
   "Like withCachingEnabled -> :noah.core/caching-enabled"
