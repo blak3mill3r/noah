@@ -4,7 +4,8 @@
             [clojure.test :as t :refer [deftest is]]
             [noah.core :as n]
             [noah.test-utils :as tu :refer [topology-test-driver record-factory *driver* *topic* advance-time output-topic-seq]]
-            [clojure.core.async :as a])
+            [clojure.core.async :as a]
+            [coddled-super-centaurs.core :as csc])
   (:import [org.apache.kafka.streams.state Stores]
            [org.apache.kafka.streams.processor ProcessorContext]))
 
@@ -29,12 +30,12 @@
 ;; the same, as a noah stateful transducer
 (def noah-xform
   (comp (map inc)
-        (sut/partition-by #(or (zero? (mod % 11))
+        (csc/partition-by #(or (zero? (mod % 11))
                                (zero? (mod % 7))))
         (filter #(not= 1 (count %)))
         (map #(apply + %))
-        (sut/partition-all 4)
-        (sut/interpose :blah)))
+        (csc/partition-all 4)
+        (csc/interpose :blah)))
 
 ;; since core.async will not call arity-1 of the channel transducer if the channel remains open
 ;; they come in handy for this test suite, in which one goal is to confirm that the noah transducers
