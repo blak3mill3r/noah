@@ -1,5 +1,6 @@
 (ns noah.javanation
   "Our Clojure values and functions will need Javanation for this plan to work..."
+  (:require noah.transformer)
   (:import
    [org.apache.kafka.common.serialization Serde]
    [org.apache.kafka.streams KafkaStreams StreamsBuilder StreamsConfig Topology$AutoOffsetReset]
@@ -25,6 +26,7 @@
    ValueJoiner                     'noah.fn-wrap/value-joiner
    ValueMapper                     'noah.fn-wrap/value-mapper
    ValueMapperWithKey              'noah.fn-wrap/value-mapper-with-key
+   TopicNameExtractor              'noah.fn-wrap/topic-name-extractor
    Consumed                        'noah.core/consumed
    Produced                        'noah.core/produced
    Serialized                      'noah.core/serialized
@@ -48,7 +50,6 @@
    ValueTransformerWithKeySupplier `identity
    Windows                         `identity
    StreamsBuilder                  `identity
-   TopicNameExtractor              `identity
    StoreBuilder                    `identity
    TimestampExtractor              `identity
    Topology$AutoOffsetReset        `identity

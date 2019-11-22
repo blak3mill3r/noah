@@ -276,12 +276,15 @@
   to
   [:noah.core/stream :noah.core/fn-3]
   [this a]
-  (.to this a))
+  (.to this (noah.fn-wrap/topic-name-extractor a)))
 (defmethod
   to
   [:noah.core/stream :noah.core/fn-3 :noah.core/produced]
   [this a b]
-  (.to this a (noah.core/produced b)))
+  (.to
+   this
+   (noah.fn-wrap/topic-name-extractor a)
+   (noah.core/produced b)))
 (defmethod
   to
   [:noah.core/stream java.lang.String :noah.core/produced]

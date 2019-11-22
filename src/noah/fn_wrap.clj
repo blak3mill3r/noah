@@ -35,7 +35,7 @@
 (defconverter ForeachAction 2)
 (defconverter Merger 3)
 (defconverter Predicate 2 test boolean)
-(defconverter TopicNameExtractor 3 extract str)
+(defconverter TopicNameExtractor 3 extract name)
 (defconverter Punctuator 1 punctuate)
 
 ;; https://stackoverflow.com/questions/1696693/clojure-how-to-find-out-the-arity-of-function-at-runtime
