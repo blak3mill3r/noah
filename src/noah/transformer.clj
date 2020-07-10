@@ -90,13 +90,12 @@
 
 (s/def ::deftransformer-args
   (s/cat :name simple-symbol?
-         :docstring (s/? string?)
+         :docstring   (s/? string?)
          :store-names (s/coll-of simple-symbol? :kind vector?)
-         :schedules (s/* ::schedule-stanza)
-         :init      (s/? ::init-stanza)
-         :close     (s/? ::close-stanza)
-         :params+body :clojure.core.specs.alpha/params+body
-         ))
+         :schedules   (s/* ::schedule-stanza)
+         :init        (s/? ::init-stanza)
+         :close       (s/? ::close-stanza)
+         :params+body :clojure.core.specs.alpha/params+body))
 
 (s/def ::schedule-stanza (s/cat :_ #{:schedule} :freq any? :type any? :fn any?))
 (s/def ::init-stanza     (s/cat :_ #{:init}  :fn any?))
