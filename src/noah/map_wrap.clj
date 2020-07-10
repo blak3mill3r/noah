@@ -24,8 +24,7 @@
 (defn- withy-name->noah-keyword
   "Like withCachingEnabled -> :noah.core/caching-enabled"
   [sym]
-  (->> (str/split (->kebab-case (name sym)) #"-")
-       (drop 1) (str/join "-") (keyword "noah.core")))
+  (keyword "noah.core" (str/replace-first (->kebab-case (name sym)) "with-" "")))
 
 (defn- map->materialized-as [m]
   ;; TODO
