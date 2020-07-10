@@ -2,6 +2,8 @@
   "Experimental one-way conversions from TopologyDescription instances to Clojure data.
   In principle it should be possible to take such Clojure data and produce a Topology as well...")
 
+;;; This should be reimagined as Datafy and Nav
+
 ;; wall hacks (invoke private instance methods)
 ;; https://gist.github.com/sunng87/13700d3356d5514d35ad
 (defn invoke-private-method [obj fn-name-string & args]
