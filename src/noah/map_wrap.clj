@@ -13,6 +13,7 @@
             [com.rpl.specter :refer :all]
             [clojure.reflect :as ref]
             [clojure.string :as str]
+            [noah.serdes]
             [noah.javanation :refer [conversion-fn]])
   (:import [org.apache.kafka.common.serialization Serdes Serde Deserializer Serializer]
            [org.apache.kafka.streams.kstream Consumed Produced Serialized Materialized]))
