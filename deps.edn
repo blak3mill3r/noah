@@ -21,5 +21,5 @@
   org.apache.kafka/kafka-streams {:mvn/version "2.2.0"}
   org.apache.kafka/kafka-clients {:mvn/version "2.2.0"}
   blak3mill3r/coddled-super-centaurs {:git/url "https://github.com/blak3mill3r/coddled-super-centaurs" :sha "c632cb4232f330a3f53ed84404130af7af5b052a"}
-  com.taoensso/nippy {:mvn/version "2.14.0"}
+  com.taoensso/nippy {:mvn/version "2.15.0"}
   com.rpl/specter {:mvn/version "1.1.2"}}}
