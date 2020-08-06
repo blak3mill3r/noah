@@ -12,7 +12,7 @@
    [org.apache.kafka.common.serialization Serdes Serde]
    [org.apache.kafka.common.utils Bytes]
    [org.apache.kafka.streams KafkaStreams StreamsBuilder StreamsConfig KeyValue]
-   [org.apache.kafka.streams.kstream Aggregator Consumed GlobalKTable Initializer Joined JoinWindows KeyValueMapper ValueMapperWithKey KGroupedStream KGroupedTable KStream KTable Materialized Merger Predicate Produced Reducer Serialized SessionWindowedKStream SessionWindows ValueJoiner ValueMapper Windows TransformerSupplier Transformer ValueTransformerWithKeySupplier ValueTransformerWithKey ValueTransformerSupplier ValueTransformer ForeachAction]
+   [org.apache.kafka.streams.kstream Aggregator Consumed GlobalKTable Initializer Joined JoinWindows KeyValueMapper ValueMapperWithKey KGroupedStream KGroupedTable KStream KTable Materialized Merger Predicate Produced Reducer Serialized SessionWindowedKStream SessionWindows ValueJoiner ValueMapper Windows TimeWindowedKStream TransformerSupplier Transformer ValueTransformerWithKeySupplier ValueTransformerWithKey ValueTransformerSupplier ValueTransformer ForeachAction]
    [org.apache.kafka.streams.kstream.internals KTableImpl KStreamImpl KGroupedStreamImpl]
    [org.apache.kafka.streams.state KeyValueStore StoreBuilder]
    [org.apache.kafka.streams.processor TopicNameExtractor]
@@ -44,6 +44,7 @@
 (derive KStreamImpl            :noah.core/stream)
 (derive KGroupedStream         :noah.core/stream)
 (derive SessionWindowedKStream :noah.core/stream)
+(derive TimeWindowedKStream    :noah.core/stream)
 (derive KTable                 :noah.core/table)
 (derive KTableImpl             :noah.core/table) ;; can automate using java reflection? ... why was this even necessary?
 (derive KGroupedTable          :noah.core/table)
@@ -93,7 +94,7 @@
   [name sigs]
   (->> (for [{:keys [parameter-types declaring-class]} sigs]
          (str "[" (str/join " " (into [(docstring-part declaring-class)] (map docstring-part) parameter-types)) "]"))
-       (str/join "\n")))
+       set sort (str/join "\n")))
 
 (defn- defwrapper-defmulti [name sigs]
   `(~'defmulti ~(->kebab-case name)
@@ -166,7 +167,7 @@
 
 (defn- reflected-methods-by-name
   []
-  (->> (for [klass [KStream KGroupedStream KTable KGroupedTable SessionWindowedKStream StreamsBuilder]
+  (->> (for [klass [KStream KGroupedStream KTable KGroupedTable SessionWindowedKStream TimeWindowedKStream StreamsBuilder]
              m (:members (ref/reflect klass))
              :when (and (-> m :flags :public)
                         (not (instance? clojure.reflect.Constructor m)))] m)
@@ -202,11 +203,13 @@
       (get 'aggregate)
       (->> (map (juxt :declaring-class :parameter-types))))
 
-  (noah-parent KStream)     ;; => :noah.core/stream
-  (noah-parent ValueJoiner) ;; => :noah.core/fn-2
-  (noah-parent Aggregator)  ;; => :noah.core/fn-3
-  (noah-parent Produced)    ;; => :noah.core/produced
-  (noah-parent Consumed)    ;; => :noah.core/consumed
+  (noah-parent Initializer)         ;; => :noah.core/fn-0
+  (noah-parent TimeWindowedKStream) ;; => :noah.core/stream
+  (noah-parent KStream)             ;; => :noah.core/stream
+  (noah-parent ValueJoiner)         ;; => :noah.core/fn-2
+  (noah-parent Aggregator)          ;; => :noah.core/fn-3
+  (noah-parent Produced)            ;; => :noah.core/produced
+  (noah-parent Consumed)            ;; => :noah.core/consumed
   (noah-parent clojure.lang.IPersistentMap) ;; => :noah.core/consumed ;; hmm... assumption violated?
 
   (noah-parent org.apache.kafka.streams.kstream.internals.KTableImpl) ;; => :noah.core/table
@@ -216,7 +219,5 @@
   (defmacro with-builder [& body]
     `(let [b# (streams-builder)]
        (binding [*builder* b#]
-         ~@body)))
-
-  )
+         ~@body))))
 

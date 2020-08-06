@@ -20,7 +20,7 @@
            [org.apache.kafka.common.serialization Serdes Serde]
            [org.apache.kafka.common.utils Bytes]
            [org.apache.kafka.streams KafkaStreams StreamsBuilder StreamsConfig KeyValue]
-           [org.apache.kafka.streams.kstream Aggregator Consumed GlobalKTable Initializer Joined JoinWindows KeyValueMapper ValueMapperWithKey KGroupedStream KGroupedTable KStream KTable Materialized Merger Predicate Produced Reducer Serialized SessionWindowedKStream SessionWindows ValueJoiner ValueMapper Windows TransformerSupplier Transformer ValueTransformerWithKeySupplier ValueTransformerWithKey ValueTransformerSupplier ValueTransformer]
+           [org.apache.kafka.streams.kstream Aggregator Consumed GlobalKTable Initializer Joined JoinWindows KeyValueMapper ValueMapperWithKey KGroupedStream KGroupedTable KStream KTable Materialized Merger Predicate Produced Reducer Serialized SessionWindowedKStream SessionWindows ValueJoiner ValueMapper Windows TimeWindowedKStream TransformerSupplier Transformer ValueTransformerWithKeySupplier ValueTransformerWithKey ValueTransformerSupplier ValueTransformer]
            [org.apache.kafka.streams.kstream.internals KTableImpl KStreamImpl KGroupedStreamImpl]
            [org.apache.kafka.streams.state KeyValueStore]
            [org.apache.kafka.streams.processor TopicNameExtractor]
@@ -34,47 +34,49 @@
 ;; the macro expansion of this produces the remainder of this source file
 ;; which is included inline for developer convenience
 #_(defwrappers)
-#_(clojure.pprint/pprint (macroexpand-1 '(defwrappers)))
+#_(macroexpand-1 '(defwrappers))
 
-(defmulti reduce "[stream fn-2 Materialized]\n[stream fn-2]\n[table fn-2 fn-2 Materialized]\n[table fn-2 fn-2]\n[stream fn-2]\n[stream fn-2 Materialized]" noah.core/types-vector)
+(defmulti reduce "[stream fn-2 Materialized]\n[stream fn-2]\n[table fn-2 fn-2 Materialized]\n[table fn-2 fn-2]" noah.core/types-vector)
 (defmulti windowed-by "[stream SessionWindows]\n[stream windows]" noah.core/types-vector)
-(defmulti aggregate "[stream fn-0 fn-3 Materialized]\n[stream fn-0 fn-3]\n[table fn-0 fn-3 fn-3 Materialized]\n[table fn-0 fn-3 fn-3]\n[stream fn-0 fn-3 fn-3 Materialized]\n[stream fn-0 fn-3 fn-3]" noah.core/types-vector)
+(defmulti aggregate "[stream fn-0 fn-3 Materialized]\n[stream fn-0 fn-3 fn-3 Materialized]\n[stream fn-0 fn-3 fn-3]\n[stream fn-0 fn-3]\n[table fn-0 fn-3 fn-3 Materialized]\n[table fn-0 fn-3 fn-3]" noah.core/types-vector)
 (defmulti peek "[stream fn-2]" noah.core/types-vector)
 (defmulti branch "[stream fn-2]" noah.core/types-vector-varargs)
 (defmulti map "[stream fn-2]" noah.core/types-vector)
-(defmulti join "[stream table fn-2 Joined]\n[stream table fn-2]\n[stream stream fn-2 join-windows Joined]\n[stream stream fn-2 join-windows]\n[stream global-table fn-2 fn-2]\n[table table fn-2]\n[table table fn-2 Materialized]" noah.core/types-vector)
+(defmulti join "[stream global-table fn-2 fn-2]\n[stream stream fn-2 join-windows Joined]\n[stream stream fn-2 join-windows]\n[stream table fn-2 Joined]\n[stream table fn-2]\n[table table fn-2 Materialized]\n[table table fn-2]" noah.core/types-vector)
 (defmulti flat-map-values "[stream fn-1]\n[stream fn-2]" noah.core/types-vector)
-(defmulti to "[stream String]\n[stream fn-3]\n[stream fn-3 produced]\n[stream String produced]" noah.core/types-vector)
+(defmulti to "[stream String produced]\n[stream String]\n[stream fn-3 produced]\n[stream fn-3]" noah.core/types-vector)
 (defmulti suppress "[table Suppressed]" noah.core/types-vector)
 (defmulti queryable-store-name "[table]" noah.core/types-vector)
-(defmulti group-by-key "[stream serialized]\n[stream Grouped]\n[stream]" noah.core/types-vector)
+(defmulti group-by-key "[stream Grouped]\n[stream serialized]\n[stream]" noah.core/types-vector)
 (defmulti transform "[stream TransformerSupplier String]" noah.core/types-vector-varargs)
-(defmulti table "[StreamsBuilder String consumed Materialized]\n[StreamsBuilder String]\n[StreamsBuilder String Materialized]\n[StreamsBuilder String consumed]" noah.core/types-vector)
+(defmulti table "[StreamsBuilder String Materialized]\n[StreamsBuilder String consumed Materialized]\n[StreamsBuilder String consumed]\n[StreamsBuilder String]" noah.core/types-vector)
 (defmulti add-state-store "[StreamsBuilder StoreBuilder]" noah.core/types-vector)
-(defmulti left-join "[stream stream fn-2 join-windows Joined]\n[stream table fn-2]\n[stream stream fn-2 join-windows]\n[stream global-table fn-2 fn-2]\n[stream table fn-2 Joined]\n[table table fn-2 Materialized]\n[table table fn-2]" noah.core/types-vector)
-(defmulti filter-not "[stream fn-2]\n[table fn-2]\n[table fn-2 Materialized]" noah.core/types-vector)
-(defmulti map-values "[stream fn-1]\n[stream fn-2]\n[table fn-2 Materialized]\n[table fn-2]\n[table fn-1 Materialized]\n[table fn-1]" noah.core/types-vector)
-(defmulti through "[stream String]\n[stream String produced]" noah.core/types-vector)
+(defmulti left-join "[stream global-table fn-2 fn-2]\n[stream stream fn-2 join-windows Joined]\n[stream stream fn-2 join-windows]\n[stream table fn-2 Joined]\n[stream table fn-2]\n[table table fn-2 Materialized]\n[table table fn-2]" noah.core/types-vector)
+(defmulti filter-not "[stream fn-2]\n[table fn-2 Materialized]\n[table fn-2]" noah.core/types-vector)
+(defmulti map-values "[stream fn-1]\n[stream fn-2]\n[table fn-1 Materialized]\n[table fn-1]\n[table fn-2 Materialized]\n[table fn-2]" noah.core/types-vector)
+(defmulti through "[stream String produced]\n[stream String]" noah.core/types-vector)
 (defmulti process "[stream ProcessorSupplier String]" noah.core/types-vector-varargs)
-(defmulti to-stream "[table]\n[table fn-2]" noah.core/types-vector)
+(defmulti to-stream "[table fn-2]\n[table]" noah.core/types-vector)
 (defmulti flat-transform "[stream TransformerSupplier String]" noah.core/types-vector-varargs)
 (defmulti print "[stream Printed]" noah.core/types-vector)
-(defmulti outer-join "[stream stream fn-2 join-windows]\n[stream stream fn-2 join-windows Joined]\n[table table fn-2]\n[table table fn-2 Materialized]" noah.core/types-vector)
+(defmulti outer-join "[stream stream fn-2 join-windows Joined]\n[stream stream fn-2 join-windows]\n[table table fn-2 Materialized]\n[table table fn-2]" noah.core/types-vector)
 (defmulti merge "[stream stream]" noah.core/types-vector)
-(defmulti stream "[StreamsBuilder Pattern]\n[StreamsBuilder Collection consumed]\n[StreamsBuilder String]\n[StreamsBuilder Collection]\n[StreamsBuilder String consumed]\n[StreamsBuilder Pattern consumed]" noah.core/types-vector)
+(defmulti stream "[StreamsBuilder Collection consumed]\n[StreamsBuilder Collection]\n[StreamsBuilder Pattern consumed]\n[StreamsBuilder Pattern]\n[StreamsBuilder String consumed]\n[StreamsBuilder String]" noah.core/types-vector)
 (defmulti flat-map "[stream fn-2]" noah.core/types-vector)
-(defmulti global-table "[StreamsBuilder String consumed]\n[StreamsBuilder String consumed Materialized]\n[StreamsBuilder String Materialized]\n[StreamsBuilder String]" noah.core/types-vector)
-(defmulti transform-values "[stream ValueTransformerWithKeySupplier String]\n[stream ValueTransformerSupplier String]\n[table ValueTransformerWithKeySupplier String]\n[table ValueTransformerWithKeySupplier Materialized String]" noah.core/types-vector-varargs)
-(defmulti build "[StreamsBuilder]\n[StreamsBuilder Properties]" noah.core/types-vector)
-(defmulti filter "[stream fn-2]\n[table fn-2]\n[table fn-2 Materialized]" noah.core/types-vector)
+(defmulti global-table "[StreamsBuilder String Materialized]\n[StreamsBuilder String consumed Materialized]\n[StreamsBuilder String consumed]\n[StreamsBuilder String]" noah.core/types-vector)
+(defmulti transform-values "[stream ValueTransformerSupplier String]\n[stream ValueTransformerWithKeySupplier String]\n[table ValueTransformerWithKeySupplier Materialized String]\n[table ValueTransformerWithKeySupplier String]" noah.core/types-vector-varargs)
+(defmulti build "[StreamsBuilder Properties]\n[StreamsBuilder]" noah.core/types-vector)
+(defmulti filter "[stream fn-2]\n[table fn-2 Materialized]\n[table fn-2]" noah.core/types-vector)
 (defmulti foreach "[stream fn-2]" noah.core/types-vector)
-(defmulti count "[stream Materialized]\n[stream]\n[table Materialized]\n[table]\n[stream Materialized]\n[stream]" noah.core/types-vector)
-(defmulti group-by "[stream fn-2 serialized]\n[stream fn-2]\n[stream fn-2 Grouped]\n[table fn-2 Grouped]\n[table fn-2 serialized]\n[table fn-2]" noah.core/types-vector)
+(defmulti count "[stream Materialized]\n[stream]\n[table Materialized]\n[table]" noah.core/types-vector)
+(defmulti group-by "[stream fn-2 Grouped]\n[stream fn-2 serialized]\n[stream fn-2]\n[table fn-2 Grouped]\n[table fn-2 serialized]\n[table fn-2]" noah.core/types-vector)
 (defmulti select-key "[stream fn-2]" noah.core/types-vector)
-(defmulti add-global-store "[StreamsBuilder StoreBuilder String consumed ProcessorSupplier]\n[StreamsBuilder StoreBuilder String String consumed String ProcessorSupplier]" noah.core/types-vector)
+(defmulti add-global-store "[StreamsBuilder StoreBuilder String String consumed String ProcessorSupplier]\n[StreamsBuilder StoreBuilder String consumed ProcessorSupplier]" noah.core/types-vector)
 (defmethod
   reduce
-  [:noah.core/stream :noah.core/fn-2 org.apache.kafka.streams.kstream.Materialized]
+  [:noah.core/stream
+   :noah.core/fn-2
+   org.apache.kafka.streams.kstream.Materialized]
   [this a b]
   (.reduce this (noah.fn-wrap/reducer a) b))
 (defmethod
@@ -107,6 +109,18 @@
    org.apache.kafka.streams.kstream.Materialized]
   [this a b]
   (.reduce this (noah.fn-wrap/reducer a) b))
+(defmethod
+  reduce
+  [:noah.core/stream
+   :noah.core/fn-2
+   org.apache.kafka.streams.kstream.Materialized]
+  [this a b]
+  (.reduce this (noah.fn-wrap/reducer a) b))
+(defmethod
+  reduce
+  [:noah.core/stream :noah.core/fn-2]
+  [this a]
+  (.reduce this (noah.fn-wrap/reducer a)))
 (defmethod
   windowed-by
   [:noah.core/stream org.apache.kafka.streams.kstream.SessionWindows]
@@ -183,6 +197,26 @@
    (noah.fn-wrap/initializer a)
    (noah.fn-wrap/aggregator b)
    (noah.fn-wrap/merger c)))
+(defmethod
+  aggregate
+  [:noah.core/stream
+   :noah.core/fn-0
+   :noah.core/fn-3
+   org.apache.kafka.streams.kstream.Materialized]
+  [this a b c]
+  (.aggregate
+   this
+   (noah.fn-wrap/initializer a)
+   (noah.fn-wrap/aggregator b)
+   c))
+(defmethod
+  aggregate
+  [:noah.core/stream :noah.core/fn-0 :noah.core/fn-3]
+  [this a b]
+  (.aggregate
+   this
+   (noah.fn-wrap/initializer a)
+   (noah.fn-wrap/aggregator b)))
 (defmethod
   peek
   [:noah.core/stream :noah.core/fn-2]
@@ -310,7 +344,11 @@
   [:noah.core/stream org.apache.kafka.streams.kstream.Grouped]
   [this a]
   (.groupByKey this a))
-(defmethod group-by-key [:noah.core/stream] [this] (.groupByKey this))
+(defmethod
+  group-by-key
+  [:noah.core/stream]
+  [this]
+  (.groupByKey this))
 (defmethod
   transform
   [:noah.core/stream
@@ -710,6 +748,12 @@
   [this a]
   (.count this a))
 (defmethod count [:noah.core/stream] [this] (.count this))
+(defmethod count [:noah.core/stream] [this] (.count this))
+(defmethod
+  count
+  [:noah.core/stream org.apache.kafka.streams.kstream.Materialized]
+  [this a]
+  (.count this a))
 (defmethod
   group-by
   [:noah.core/stream :noah.core/fn-2 :noah.core/serialized]
@@ -730,40 +774,40 @@
    org.apache.kafka.streams.kstream.Grouped]
   [this a b]
   (.groupBy this (noah.fn-wrap/key-value-mapper a) b))
-  (defmethod
-    group-by
-    [:noah.core/table
-     :noah.core/fn-2
-     org.apache.kafka.streams.kstream.Grouped]
-    [this a b]
-    (.groupBy this (noah.fn-wrap/key-value-mapper a) b))
-  (defmethod
-    group-by
-    [:noah.core/table :noah.core/fn-2 :noah.core/serialized]
-    [this a b]
-    (.groupBy
-     this
-     (noah.fn-wrap/key-value-mapper a)
-     (noah.core/serialized b)))
-  (defmethod
-    group-by
-    [:noah.core/table :noah.core/fn-2]
-    [this a]
-    (.groupBy this (noah.fn-wrap/key-value-mapper a)))
-  (defmethod
-    select-key
-    [:noah.core/stream :noah.core/fn-2]
-    [this a]
-    (.selectKey this (noah.fn-wrap/key-value-mapper a)))
-  (defmethod
-    add-global-store
-    [org.apache.kafka.streams.StreamsBuilder
-     org.apache.kafka.streams.state.StoreBuilder
-     java.lang.String
-     :noah.core/consumed
-     org.apache.kafka.streams.processor.ProcessorSupplier]
-    [this a b c d]
-    (.addGlobalStore this a b (noah.core/consumed c) d))
+(defmethod
+  group-by
+  [:noah.core/table
+   :noah.core/fn-2
+   org.apache.kafka.streams.kstream.Grouped]
+  [this a b]
+  (.groupBy this (noah.fn-wrap/key-value-mapper a) b))
+(defmethod
+  group-by
+  [:noah.core/table :noah.core/fn-2 :noah.core/serialized]
+  [this a b]
+  (.groupBy
+   this
+   (noah.fn-wrap/key-value-mapper a)
+   (noah.core/serialized b)))
+(defmethod
+  group-by
+  [:noah.core/table :noah.core/fn-2]
+  [this a]
+  (.groupBy this (noah.fn-wrap/key-value-mapper a)))
+(defmethod
+  select-key
+  [:noah.core/stream :noah.core/fn-2]
+  [this a]
+  (.selectKey this (noah.fn-wrap/key-value-mapper a)))
+(defmethod
+  add-global-store
+  [org.apache.kafka.streams.StreamsBuilder
+   org.apache.kafka.streams.state.StoreBuilder
+   java.lang.String
+   :noah.core/consumed
+   org.apache.kafka.streams.processor.ProcessorSupplier]
+  [this a b c d]
+  (.addGlobalStore this a b (noah.core/consumed c) d))
 (defmethod
   add-global-store
   [org.apache.kafka.streams.StreamsBuilder
