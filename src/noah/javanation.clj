@@ -27,6 +27,7 @@
    ValueMapper                     'noah.fn-wrap/value-mapper
    ValueMapperWithKey              'noah.fn-wrap/value-mapper-with-key
    TopicNameExtractor              'noah.fn-wrap/topic-name-extractor
+   TimestampExtractor              'noah.fn-wrap/timestamp-extractor
    Consumed                        'noah.core/consumed
    Produced                        'noah.core/produced
    Serialized                      'noah.core/serialized
@@ -52,7 +53,6 @@
    Windows                         `identity
    StreamsBuilder                  `identity
    StoreBuilder                    `identity
-   TimestampExtractor              `identity
    Topology$AutoOffsetReset        `identity
    StreamPartitioner               `identity
    Duration                        `identity
