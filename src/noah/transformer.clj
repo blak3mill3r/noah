@@ -77,7 +77,7 @@
   (let [{:keys [name docstring store-names schedules init close params+body]} (s/conform ::deftransformer-args args)]
     `(def ~name ~@(when docstring [docstring])
        (reify TransformerSupplier
-         (get [~'this]
+         (get [_#]
            (->NoahTransformer
             ~(:fn init) ;; FIXME wrap with bindings?
             (fn ~(symbol (str name"-transform"))
