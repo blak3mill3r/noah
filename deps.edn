@@ -1,6 +1,8 @@
 ;; -*- mode: clojure; eval: (flycheck-mode -1); -*-
 
-{:aliases
+{:paths ["src" "resources"]
+
+ :aliases
  {:test
   {:extra-paths ["test" "classes"]
    :extra-deps
