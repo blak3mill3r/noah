@@ -80,7 +80,7 @@
          (get [_#]
            (->NoahTransformer
             ~(:fn init) ;; FIXME wrap with bindings?
-            (fn ~(symbol (str name"-transform"))
+            (fn ~name
               ~@(wrap-with-bindings store-names params+body))
             ~(:fn close) ;; FIXME wrap with bindings?
             ~(->> schedules (transform [ALL :fn] #(wrap-fn-with-bindings store-names %)))
