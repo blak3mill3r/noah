@@ -1,0 +1,1 @@
+{:hooks {:analyze-call {noah.transformer/deftransformer hooks.noah/deftransformer}}}

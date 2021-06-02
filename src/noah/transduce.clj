@@ -79,7 +79,7 @@
          nil
          (fn [k v]
            (let [step-fn (value-transform-step k)
-                 context tr/*context*
+                 context (tr/context)
                  g (or @theglue (let [v (new-gluer state-store-name context)] (vreset! theglue v) v))]
              (init! g k initial-state)
              (binding [csc/*state* (fn [_] (yield-state! g k))]
