@@ -7,7 +7,17 @@
 ;; how about some deftype and a macro to do transformers or processors
 ;; okay that's not bad I guess:
 
-(def ^:dynamic *context* nil)
+(def ^:dynamic ^:private *context* nil)
+
+(defn context
+  "Fetch the current context.
+
+  This must be called from within the dynamic scope of a transformer."
+  []
+  (if *context*
+    *context*
+    (throw (IllegalStateException. "Cannot fetch a transformer context outside a transformer."))))
+
 (def ^:dynamic *stores* nil)
 
 (def punctuation-types
@@ -53,7 +63,7 @@
   [store-names params+body]
   (let [[params & body] (s/unform :clojure.core.specs.alpha/params+body params+body)]
     `(~(vec params) ;; unform is broken, turn it back into a vector
-      (let [~'context *context* ~@(binding-forms-for-store-names store-names)]
+      (let [~@(binding-forms-for-store-names store-names)]
         ~@body))))
 
 (defn- wrap-fn-with-bindings
@@ -66,7 +76,7 @@
         [params & body] (s/unform :clojure.core.specs.alpha/params+body tail)]
     `(clojure.core/fn ~@(when fn-name [fn-name])
        ~(vec params) ;; unform is broken, turn it back into a vector
-       (let [~'context *context* ~@(binding-forms-for-store-names store-names)]
+       (let [~@(binding-forms-for-store-names store-names)]
          ~@body))))
 
 (defmacro deftransformer
@@ -77,10 +87,10 @@
   (let [{:keys [name docstring store-names schedules init close params+body]} (s/conform ::deftransformer-args args)]
     `(def ~name ~@(when docstring [docstring])
        (reify TransformerSupplier
-         (get [~'this]
+         (get [_#]
            (->NoahTransformer
             ~(:fn init) ;; FIXME wrap with bindings?
-            (fn ~(symbol (str name"-transform"))
+            (fn ~name
               ~@(wrap-with-bindings store-names params+body))
             ~(:fn close) ;; FIXME wrap with bindings?
             ~(->> schedules (transform [ALL :fn] #(wrap-fn-with-bindings store-names %)))
@@ -90,13 +100,12 @@
 
 (s/def ::deftransformer-args
   (s/cat :name simple-symbol?
-         :docstring (s/? string?)
+         :docstring   (s/? string?)
          :store-names (s/coll-of simple-symbol? :kind vector?)
-         :schedules (s/* ::schedule-stanza)
-         :init      (s/? ::init-stanza)
-         :close     (s/? ::close-stanza)
-         :params+body :clojure.core.specs.alpha/params+body
-         ))
+         :schedules   (s/* ::schedule-stanza)
+         :init        (s/? ::init-stanza)
+         :close       (s/? ::close-stanza)
+         :params+body :clojure.core.specs.alpha/params+body))
 
 (s/def ::schedule-stanza (s/cat :_ #{:schedule} :freq any? :type any? :fn any?))
 (s/def ::init-stanza     (s/cat :_ #{:init}  :fn any?))

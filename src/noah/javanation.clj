@@ -4,7 +4,7 @@
   (:import
    [org.apache.kafka.common.serialization Serde]
    [org.apache.kafka.streams KafkaStreams StreamsBuilder StreamsConfig Topology$AutoOffsetReset]
-   [org.apache.kafka.streams.kstream Aggregator Consumed ForeachAction GlobalKTable Initializer Joined JoinWindows KeyValueMapper ValueMapperWithKey KGroupedStream KGroupedTable KStream KTable Materialized Merger Predicate Produced Reducer Serialized SessionWindowedKStream SessionWindows ValueJoiner ValueMapper Windows Suppressed Grouped TransformerSupplier Transformer ValueTransformerWithKeySupplier ValueTransformerWithKey ValueTransformerSupplier ValueTransformer Printed]
+   [org.apache.kafka.streams.kstream Aggregator Consumed ForeachAction GlobalKTable Initializer Joined JoinWindows KeyValueMapper ValueMapperWithKey KGroupedStream KGroupedTable KStream KTable Materialized Merger Predicate Produced Reducer Serialized SessionWindowedKStream SessionWindows ValueJoiner ValueMapper Windows Suppressed Grouped TimeWindowedKStream TransformerSupplier Transformer ValueTransformerWithKeySupplier ValueTransformerWithKey ValueTransformerSupplier ValueTransformer Printed]
    [org.apache.kafka.streams.kstream.internals KTableImpl KStreamImpl KGroupedStreamImpl]
    [org.apache.kafka.streams.state KeyValueStore StoreBuilder]
    [org.apache.kafka.streams.processor TopicNameExtractor TimestampExtractor StreamPartitioner ProcessorSupplier]
@@ -27,6 +27,7 @@
    ValueMapper                     'noah.fn-wrap/value-mapper
    ValueMapperWithKey              'noah.fn-wrap/value-mapper-with-key
    TopicNameExtractor              'noah.fn-wrap/topic-name-extractor
+   TimestampExtractor              'noah.fn-wrap/timestamp-extractor
    Consumed                        'noah.core/consumed
    Produced                        'noah.core/produced
    Serialized                      'noah.core/serialized
@@ -40,6 +41,7 @@
    Joined                          `identity
    JoinWindows                     `identity
    KGroupedStream                  `identity
+   TimeWindowedKStream             `identity
    KStream                         `identity
    KTable                          `identity
    Materialized                    `identity
@@ -51,7 +53,6 @@
    Windows                         `identity
    StreamsBuilder                  `identity
    StoreBuilder                    `identity
-   TimestampExtractor              `identity
    Topology$AutoOffsetReset        `identity
    StreamPartitioner               `identity
    Duration                        `identity

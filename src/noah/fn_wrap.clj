@@ -7,7 +7,7 @@
   (:require [camel-snake-kebab.core :refer [->kebab-case]]
             [clojure.reflect :as ref])
   (:import [org.apache.kafka.streams.kstream ForeachAction Merger ValueJoiner KeyValueMapper ValueMapper Predicate Reducer Initializer Aggregator ValueMapperWithKey]
-           [org.apache.kafka.streams.processor TopicNameExtractor Punctuator]))
+           [org.apache.kafka.streams.processor TopicNameExtractor Punctuator TimestampExtractor]))
 
 (defmacro defconverter
   "Expands into the definition of a converter fn which will return an instance of `type` (a symbol representing a java class).
@@ -37,6 +37,7 @@
 (defconverter Predicate 2 test boolean)
 (defconverter TopicNameExtractor 3 extract name)
 (defconverter Punctuator 1 punctuate)
+(defconverter TimestampExtractor 2 extract long)
 
 ;; https://stackoverflow.com/questions/1696693/clojure-how-to-find-out-the-arity-of-function-at-runtime
 (defn arity
