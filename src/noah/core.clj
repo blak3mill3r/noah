@@ -13,6 +13,7 @@
   (:require [noah.impl :refer [defwrappers]]
             [noah.wrap]
             [noah.serdes]
+            [noah.transformer]
             [noah.map-wrap :as map-wrap]
             [noah.fn-wrap :as fn-wrap]
             [potemkin])
@@ -30,6 +31,7 @@
 (potemkin/import-vars [noah.map-wrap consumed produced serialized materialized map->properties])
 (potemkin/import-vars [noah.wrap kafka-streams streams-builder kv transduce])
 (potemkin/import-vars [noah.impl types-vector types-vector-varargs])
+(potemkin/import-vars [noah.transformer context])
 
 ;; the macro expansion of this produces the remainder of this source file
 ;; which is included inline for developer convenience
