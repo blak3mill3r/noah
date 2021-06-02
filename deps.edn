@@ -16,8 +16,8 @@
    :main-opts ["-m" "cognitect.test-runner" "-d" "test"]}}
  :deps
  {org.clojure/clojure {:mvn/version "1.10.1"}
-  camel-snake-kebab {:mvn/version "0.4.0"}
-  potemkin {:mvn/version "0.4.5"}
+  camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.0"}
+  potemkin/potemkin {:mvn/version "0.4.5"}
   org.apache.kafka/kafka-streams {:mvn/version "2.2.0"}
   org.apache.kafka/kafka-clients {:mvn/version "2.2.0"}
   blak3mill3r/coddled-super-centaurs {:git/url "https://github.com/blak3mill3r/coddled-super-centaurs" :sha "c632cb4232f330a3f53ed84404130af7af5b052a"}
