@@ -20,5 +20,8 @@
 
 ;; working around cyclic dependency
 ;; I want this to live here but use transform from core, which is generated
-(defn transduce [kstream xform state-store-name]
-  (@(ns-resolve 'noah.core 'transform)  kstream (noah.transduce/transducing-transformer xform state-store-name) [(name state-store-name)]))
+(defn transduce
+  ([kstream xform]
+   (@(ns-resolve 'noah.core 'transform)  kstream (noah.transduce/transducing-transformer xform) []))
+  ([kstream xform state-store-name]
+   (@(ns-resolve 'noah.core 'transform)  kstream (noah.transduce/transducing-transformer xform state-store-name) [(name state-store-name)])))
