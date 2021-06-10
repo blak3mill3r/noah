@@ -19,14 +19,14 @@
     (let [cutoff (- ts (* 1000 60 20))]
       (doseq [r (iterator-seq (.all mystore))]
         (when (and (.value r) (< (.value r) cutoff))
-          (.forward context (.key r) nil)))))
+          (.forward (sut/context) (.key r) nil)))))
   ;;:init  (fn my-init [ctx] )
   ;;:close (fn my-close [ctx stores] )
   [k v]
   (if (nil? v)
     (.delete mystore k)
-    (do (.put mystore k (.timestamp context))
-        (.forward context k v))))
+    (do (.put mystore k (.timestamp (sut/context)))
+        (.forward (sut/context) k v))))
 
 (defn topology []
   (let [b (n/streams-builder)
