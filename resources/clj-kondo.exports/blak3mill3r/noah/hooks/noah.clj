@@ -48,13 +48,12 @@
                      init
                      close
                      (apply with-stores
-                            schedules
                             (api/list-node
                              (list*
                               (api/token-node 'fn)
                               (api/token-node (symbol (str (api/sexpr name) "-transform")))
                               params
-                              body)))
-                     schedules
+                              body))
+                            schedules)
                      (api/token-node nil)))))]
     {:node new-node}))
