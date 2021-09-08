@@ -59,9 +59,11 @@
     (->text nil "more")
     (let [output (map vector
                       (output-topic-seq "word-counts" :string :long)
-                      [["some" 1] ["more" 1]
+                      [["some" 1]
                        ;; then a tombstone for `some` which expired
                        ["some" nil]
+                       ;; then `more` arrives later
+                       ["more" 1]
                        ;; and no more tombstones because `more` did not expire
                        nil])]
       (doseq [[result expected] output]
