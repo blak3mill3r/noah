@@ -20,7 +20,7 @@
   (serialize [_ _ data] (nippy/freeze data opts))
   (close [_]))
 
-(def the-nippy-serializer (NippySerializer. {}))
+(def the-nippy-serializer (NippySerializer. {:incl-metadata? false})) ;; TODO:(Blake) allow the user to configure this
 (def the-nippy-deserializer (NippyDeserializer. {}))
 
 (deftype NippySerde []
