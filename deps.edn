@@ -7,21 +7,21 @@
   {:extra-paths ["test" "classes"]
    :extra-deps
    {org.clojure/test.check {:mvn/version "RELEASE"}
-    org.apache.kafka/kafka-streams-test-utils {:mvn/version "2.2.0"}
+    org.apache.kafka/kafka-streams-test-utils {:mvn/version "2.8.0"}
     org.clojure/core.async {:mvn/version "RELEASE"}
-    net.cgrand/xforms {:mvn/version "0.18.2"}}}
+    net.cgrand/xforms {:mvn/version "0.19.2"}}}
   :runner
   {:extra-deps
    {com.cognitect/test-runner
     {:git/url "https://github.com/cognitect-labs/test-runner"
-     :sha "76568540e7f40268ad2b646110f237a60295fa3c"}}
+     :sha "dd6da11611eeb87f08780a30ac8ea6012d4c05ce"}}
    :main-opts ["-m" "cognitect.test-runner" "-d" "test"]}}
  :deps
  {org.clojure/clojure {:mvn/version "1.10.1"}
   camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.0"}
   potemkin/potemkin {:mvn/version "0.4.5"}
-  org.apache.kafka/kafka-streams {:mvn/version "2.2.0"}
-  org.apache.kafka/kafka-clients {:mvn/version "2.2.0"}
+  org.apache.kafka/kafka-streams {:mvn/version "2.8.0"}
+  org.apache.kafka/kafka-clients {:mvn/version "2.8.0"}
   blak3mill3r/coddled-super-centaurs {:git/url "https://github.com/blak3mill3r/coddled-super-centaurs" :sha "c632cb4232f330a3f53ed84404130af7af5b052a"}
-  com.taoensso/nippy {:mvn/version "2.15.0"}
-  com.rpl/specter {:mvn/version "1.1.2"}}}
+  com.taoensso/nippy {:mvn/version "3.1.1"}
+  com.rpl/specter {:mvn/version "1.1.3"}}}
