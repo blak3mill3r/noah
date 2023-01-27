@@ -1,3 +1,0 @@
-{:config-paths ["blak3mill3r/noah"]
- :lint-as {com.rpl.specter/defnav clojure.core/defn
-           com.rpl.specter/defmacroalias clojure.core/defn}}
