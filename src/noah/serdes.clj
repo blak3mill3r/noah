@@ -2,7 +2,8 @@
   "There's a lot of room for improvement here. They don't take options, and I haven't thought it all through.
   You can always build a Serde yourself. `serdes` is a multimethod so it is open to extension."
   (:require
-   [taoensso.nippy :as nippy])
+   [taoensso.nippy :as nippy]
+   [clojure.data.json :as json])
   (:import
    [java.nio.charset StandardCharsets]
    [org.apache.kafka.common.serialization Serdes Serde Deserializer Serializer]
@@ -59,6 +60,33 @@
   (serializer [this] the-edn-serializer)
   (deserializer [this] the-edn-deserializer))
 
+(deftype JsonSerializer []
+  Serializer
+  (close [o])
+  (configure [this configs key?])
+  (serialize [this topic data]
+    (when data (-> (json/write-str data)
+                   (.getBytes StandardCharsets/UTF_8)))))
+
+(defrecord JsonDeserializer [opts]
+  Deserializer
+  (close [this])
+  (configure [this configs key?])
+  (deserialize [this topic data]
+    (when data
+      (-> (String. data StandardCharsets/UTF_8)
+          (json/read-str opts)))))
+
+(def the-json-serializer (JsonSerializer.))
+(def the-json-deserializer (JsonDeserializer. {}))
+
+(deftype JsonSerde []
+  Serde
+  (configure [this map b])
+  (close [this])
+  (serializer [this] the-json-serializer)
+  (deserializer [this] the-json-deserializer))
+
 ;; `serdes` is a multimethod in order to be open to extension
 (defmulti serdes identity)
 (defmethod serdes :default [o] o) ;; allow using a plain Serdes instance instead of a keyword
@@ -73,3 +101,4 @@
 (defmethod serdes :float        [_] (Serdes/Float))
 (defmethod serdes :nippy        [_] (NippySerde.))
 (defmethod serdes :edn          [_] (EdnSerde.))
+(defmethod serdes :json         [_] (JsonSerde.))
