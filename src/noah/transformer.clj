@@ -2,7 +2,8 @@
   (:require [noah.fn-wrap :as fn-wrap]
             [clojure.spec.alpha :as s]
             [com.rpl.specter :refer :all])
-  (:import [org.apache.kafka.streams.kstream Transformer TransformerSupplier]))
+  (:import [org.apache.kafka.streams.kstream Transformer TransformerSupplier]
+           [org.apache.kafka.streams.processor.api ProcessorContext]))
 
 ;; how about some deftype and a macro to do transformers or processors
 ;; okay that's not bad I guess:
@@ -13,7 +14,7 @@
   "Fetch the current context.
 
   This must be called from within the dynamic scope of a transformer."
-  []
+  ^ProcessorContext []
   (if *context*
     *context*
     (throw (IllegalStateException. "Cannot fetch a transformer context outside a transformer."))))
