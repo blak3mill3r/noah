@@ -4,6 +4,7 @@
    [org.apache.kafka.streams TopologyTestDriver StreamsConfig ]
    [org.apache.kafka.streams.test ConsumerRecordFactory]
    [org.apache.kafka.common.serialization Serdes]
+   [java.time Duration]
    ))
 
 (def ^:dynamic *driver* nil)
@@ -38,6 +39,11 @@
     (.pipeInput driver (.create rf topic k v)))
   BackToTheFuture
   (advance-time [this ms] (.advanceTimeMs rf ms)))
+
+(defn advance-wall-clock-time
+  [ms]
+  (when-not *driver* (throw (ex-info "Must be called inside a topology test." {})))
+  (.advanceWallClockTime *driver* (Duration/ofMillis ms)))
 
 (defn mock-topic [driver topic k-ser v-ser]
   (->MockTopic driver topic (record-factory topic k-ser v-ser)))
