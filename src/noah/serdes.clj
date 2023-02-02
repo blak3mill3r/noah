@@ -6,8 +6,7 @@
    [clojure.data.json :as json])
   (:import
    [java.nio.charset StandardCharsets]
-   [org.apache.kafka.common.serialization Serdes Serde Deserializer Serializer]
-   [org.apache.kafka.streams.kstream Consumed Produced Serialized]))
+   [org.apache.kafka.common.serialization Serdes Serde Deserializer Serializer]))
 
 (deftype NippyDeserializer [opts]
   Deserializer

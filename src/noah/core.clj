@@ -21,14 +21,14 @@
            [org.apache.kafka.common.serialization Serdes Serde]
            [org.apache.kafka.common.utils Bytes]
            [org.apache.kafka.streams KafkaStreams StreamsBuilder StreamsConfig KeyValue]
-           [org.apache.kafka.streams.kstream Aggregator Consumed GlobalKTable Initializer Joined JoinWindows KeyValueMapper ValueMapperWithKey KGroupedStream KGroupedTable KStream KTable Materialized Merger Predicate Produced Reducer Serialized SessionWindowedKStream SessionWindows ValueJoiner ValueMapper Windows TimeWindowedKStream TransformerSupplier Transformer ValueTransformerWithKeySupplier ValueTransformerWithKey ValueTransformerSupplier ValueTransformer]
+           [org.apache.kafka.streams.kstream Aggregator Consumed GlobalKTable Initializer Joined JoinWindows KeyValueMapper ValueMapperWithKey KGroupedStream KGroupedTable KStream KTable Materialized Merger Predicate Produced Reducer Grouped SessionWindowedKStream SessionWindows ValueJoiner ValueMapper Windows TimeWindowedKStream TransformerSupplier Transformer ValueTransformerWithKeySupplier ValueTransformerWithKey ValueTransformerSupplier ValueTransformer]
            [org.apache.kafka.streams.kstream.internals KTableImpl KStreamImpl KGroupedStreamImpl]
            [org.apache.kafka.streams.state KeyValueStore]
            [org.apache.kafka.streams.processor TopicNameExtractor]
            [java.util Collections Map Properties]))
 
 (potemkin/import-vars [noah.serdes serdes])
-(potemkin/import-vars [noah.map-wrap consumed produced serialized materialized map->properties])
+(potemkin/import-vars [noah.map-wrap consumed produced grouped materialized map->properties])
 (potemkin/import-vars [noah.wrap kafka-streams streams-builder kv transduce])
 (potemkin/import-vars [noah.impl types-vector types-vector-varargs])
 (potemkin/import-vars [noah.transformer context])

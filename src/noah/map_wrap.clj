@@ -16,7 +16,7 @@
             [noah.serdes]
             [noah.javanation :refer [conversion-fn]])
   (:import [org.apache.kafka.common.serialization Serdes Serde Deserializer Serializer]
-           [org.apache.kafka.streams.kstream Consumed Produced Serialized Materialized]))
+           [org.apache.kafka.streams.kstream Consumed Produced Grouped Materialized]))
 
 (declare produced consumed serialized materialized)
 
@@ -36,7 +36,7 @@
 (defn- withy-named [m] (re-find #"^with.+" (name (:name m))))
 
 (defn- reflect-withy-methods [klass]
-  (->> klass ref/reflect (select [:members ALL withy-named]) (map (juxt :name :parameter-types))))
+  (->> klass ref/reflect (select [:members ALL withy-named]) (map (juxt :name :parameter-types)) set))
 
 (defmacro defoptionclasswrapper [class-sym & [construct-method]]
   (let [fn-name (->kebab-case class-sym)
@@ -52,10 +52,19 @@
                                     `[(get ~'o ~sym)
                                       (~(symbol (str "."(name m)))
                                        ~@(when (not-empty ps) (assert (= 1 (count ps)))
+                                               (assert (some? (conversion-fn (resolve p))) (str p " needs to be defined for wrapping with noah"))
                                                [`(~(conversion-fn (resolve p)) (get ~'o ~sym))]))])))
              true (throw (ex-info ~(str "Need a map or an instance of " (.getName (ns-resolve *ns* class-sym))) {:got ~'o})))) ))
 
 (defn map->properties [m] (->> m (reduce (fn [p [k v]] (.put p k v) p) (java.util.Properties.))))
+
+(def materialized-store-types
+  (into {}
+        (select [:members ALL (selected? :flags ALL #{:enum})
+                 (collect-one
+                  :name (view (comp #(keyword "noah.store-type" (str %)) ->kebab-case)))
+                 (view (comp symbol (partial str/join "/") (juxt :declaring-class :name)))]
+                (ref/reflect org.apache.kafka.streams.kstream.Materialized$StoreType))))
 
 ;;; Wrapper definitions
 
@@ -67,6 +76,6 @@
 ;; these will just be more qualified keys in our maps...
 (defoptionclasswrapper Consumed)
 (defoptionclasswrapper Produced)
-(defoptionclasswrapper Serialized)
+(defoptionclasswrapper Grouped)
 (defoptionclasswrapper Materialized as)
 

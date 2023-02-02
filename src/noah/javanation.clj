@@ -4,7 +4,7 @@
   (:import
    [org.apache.kafka.common.serialization Serde]
    [org.apache.kafka.streams KafkaStreams StreamsBuilder StreamsConfig Topology$AutoOffsetReset]
-   [org.apache.kafka.streams.kstream Aggregator Consumed ForeachAction GlobalKTable Initializer Joined JoinWindows KeyValueMapper ValueMapperWithKey KGroupedStream KGroupedTable KStream KTable Materialized Merger Predicate Produced Reducer Serialized SessionWindowedKStream SessionWindows ValueJoiner ValueMapper Windows Suppressed Grouped TimeWindowedKStream TransformerSupplier Transformer ValueTransformerWithKeySupplier ValueTransformerWithKey ValueTransformerSupplier ValueTransformer Printed]
+   [org.apache.kafka.streams.kstream Aggregator Consumed ForeachAction GlobalKTable Initializer Joined JoinWindows KeyValueMapper ValueMapperWithKey KGroupedStream KGroupedTable KStream KTable Materialized Materialized$StoreType Merger Predicate Produced Reducer SessionWindowedKStream SessionWindows ValueJoiner ValueMapper Windows Suppressed Grouped TimeWindowedKStream TransformerSupplier Transformer ValueTransformerWithKeySupplier ValueTransformerWithKey ValueTransformerSupplier ValueTransformer Printed]
    [org.apache.kafka.streams.kstream.internals KTableImpl KStreamImpl KGroupedStreamImpl]
    [org.apache.kafka.streams.state KeyValueStore StoreBuilder]
    [org.apache.kafka.streams.processor TopicNameExtractor TimestampExtractor StreamPartitioner ProcessorSupplier]
@@ -30,7 +30,7 @@
    TimestampExtractor              'noah.fn-wrap/timestamp-extractor
    Consumed                        'noah.core/consumed
    Produced                        'noah.core/produced
-   Serialized                      'noah.core/serialized
+   Grouped                         'noah.core/grouped
    Serde                           'noah.serdes/serdes
    java.util.Properties            'noah.core/map->properties
    NoahTransformer                 `identity
@@ -45,6 +45,7 @@
    KStream                         `identity
    KTable                          `identity
    Materialized                    `identity
+   Materialized$StoreType          'noah.map-wrap/materialized-store-types
    SessionWindowedKStream          `identity
    SessionWindows                  `identity
    TransformerSupplier             `identity
@@ -59,7 +60,6 @@
    java.util.Map                   `identity
    java.util.Collection            `identity
    Suppressed                      `identity
-   Grouped                         `identity
    ProcessorSupplier               `identity
    Printed                         `identity
    })

@@ -12,7 +12,7 @@
    [org.apache.kafka.common.serialization Serdes Serde]
    [org.apache.kafka.common.utils Bytes]
    [org.apache.kafka.streams KafkaStreams StreamsBuilder StreamsConfig KeyValue]
-   [org.apache.kafka.streams.kstream Aggregator Consumed GlobalKTable Initializer Joined JoinWindows KeyValueMapper ValueMapperWithKey KGroupedStream KGroupedTable KStream KTable Materialized Merger Predicate Produced Reducer Serialized SessionWindowedKStream SessionWindows ValueJoiner ValueMapper Windows TimeWindowedKStream TransformerSupplier Transformer ValueTransformerWithKeySupplier ValueTransformerWithKey ValueTransformerSupplier ValueTransformer ForeachAction]
+   [org.apache.kafka.streams.kstream Aggregator Consumed GlobalKTable Initializer Joined JoinWindows KeyValueMapper ValueMapperWithKey KGroupedStream KGroupedTable KStream KTable Materialized Merger Predicate Produced Reducer Grouped SessionWindowedKStream SessionWindows ValueJoiner ValueMapper Windows TimeWindowedKStream TransformerSupplier Transformer ValueTransformerWithKeySupplier ValueTransformerWithKey ValueTransformerSupplier ValueTransformer ForeachAction]
    [org.apache.kafka.streams.kstream.internals KTableImpl KStreamImpl KGroupedStreamImpl]
    [org.apache.kafka.streams.state KeyValueStore StoreBuilder]
    [org.apache.kafka.streams.processor TopicNameExtractor]
@@ -28,7 +28,7 @@
 
 (derive clojure.lang.IPersistentMap :noah.core/consumed)   (derive Consumed :noah.core/consumed)
 (derive clojure.lang.IPersistentMap :noah.core/produced)   (derive Produced :noah.core/produced)
-(derive clojure.lang.IPersistentMap :noah.core/serialized) (derive Serialized :noah.core/serialized)
+(derive clojure.lang.IPersistentMap :noah.core/grouped)    (derive Grouped  :noah.core/grouped)
 (derive Initializer            :noah.core/fn-0)
 (derive ValueMapper            :noah.core/fn-1)
 (derive ValueMapperWithKey     :noah.core/fn-2)
