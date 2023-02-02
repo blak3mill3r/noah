@@ -70,6 +70,11 @@
 [table fn-0 fn-3 fn-3]"
   noah.core/types-vector)
 (defmulti
+  process-values
+  "[stream FixedKeyProcessorSupplier Named String]
+[stream FixedKeyProcessorSupplier String]"
+  noah.core/types-vector-varargs)
+(defmulti
   peek
   "[stream fn-2 Named]
 [stream fn-2]"
@@ -93,14 +98,21 @@
   join
   "[stream global-table fn-2 fn-2 Named]
 [stream global-table fn-2 fn-2]
-[stream stream fn-2 join-windows Joined]
+[stream global-table fn-2 fn-3 Named]
+[stream global-table fn-2 fn-3]
 [stream stream fn-2 join-windows StreamJoined]
 [stream stream fn-2 join-windows]
+[stream stream fn-3 join-windows StreamJoined]
+[stream stream fn-3 join-windows]
 [stream table fn-2 Joined]
 [stream table fn-2]
+[stream table fn-3 Joined]
+[stream table fn-3]
 [table table Function fn-2 Materialized]
 [table table Function fn-2 Named Materialized]
 [table table Function fn-2 Named]
+[table table Function fn-2 TableJoined Materialized]
+[table table Function fn-2 TableJoined]
 [table table Function fn-2]
 [table table fn-2 Materialized]
 [table table fn-2 Named Materialized]
@@ -131,9 +143,7 @@
   noah.core/types-vector)
 (defmulti
   group-by-key
-  "[stream Grouped]
-[stream serialized]
-[stream]"
+  "[stream grouped]\n[stream]"
   noah.core/types-vector)
 (defmulti
   transform
@@ -155,14 +165,21 @@
   left-join
   "[stream global-table fn-2 fn-2 Named]
 [stream global-table fn-2 fn-2]
-[stream stream fn-2 join-windows Joined]
+[stream global-table fn-2 fn-3 Named]
+[stream global-table fn-2 fn-3]
 [stream stream fn-2 join-windows StreamJoined]
 [stream stream fn-2 join-windows]
+[stream stream fn-3 join-windows StreamJoined]
+[stream stream fn-3 join-windows]
 [stream table fn-2 Joined]
 [stream table fn-2]
+[stream table fn-3 Joined]
+[stream table fn-3]
 [table table Function fn-2 Materialized]
 [table table Function fn-2 Named Materialized]
 [table table Function fn-2 Named]
+[table table Function fn-2 TableJoined Materialized]
+[table table Function fn-2 TableJoined]
 [table table Function fn-2]
 [table table fn-2 Materialized]
 [table table fn-2 Named Materialized]
@@ -221,9 +238,10 @@
   noah.core/types-vector)
 (defmulti
   outer-join
-  "[stream stream fn-2 join-windows Joined]
-[stream stream fn-2 join-windows StreamJoined]
+  "[stream stream fn-2 join-windows StreamJoined]
 [stream stream fn-2 join-windows]
+[stream stream fn-3 join-windows StreamJoined]
+[stream stream fn-3 join-windows]
 [table table fn-2 Materialized]
 [table table fn-2 Named Materialized]
 [table table fn-2 Named]
@@ -320,12 +338,14 @@
   noah.core/types-vector)
 (defmulti
   group-by
-  "[stream fn-2 Grouped]
-[stream fn-2 serialized]
+  "[stream fn-2 grouped]
 [stream fn-2]
-[table fn-2 Grouped]
-[table fn-2 serialized]
+[table fn-2 grouped]
 [table fn-2]"
+  noah.core/types-vector)
+(defmulti
+  emit-strategy
+  "[stream EmitStrategy]"
   noah.core/types-vector)
 (defmulti
   select-key
@@ -334,8 +354,7 @@
   noah.core/types-vector)
 (defmulti
   add-global-store
-  "[StreamsBuilder StoreBuilder String String consumed String ProcessorSupplier]
-[StreamsBuilder StoreBuilder String consumed ProcessorSupplier]"
+  "[StreamsBuilder StoreBuilder String consumed ProcessorSupplier]"
   noah.core/types-vector)
 (defmethod
   reduce
@@ -352,11 +371,16 @@
   (.reduce
    this
    (noah.fn-wrap/reducer a)))
-(clojure.core/comment
-  noah.impl/skipped
+(defmethod
   reduce
-  "(this (noah.fn-wrap/reducer a) nil c)
- <- [[org.apache.kafka.streams.kstream.KGroupedStream this] [org.apache.kafka.streams.kstream.Reducer a] [org.apache.kafka.streams.kstream.Named b] [org.apache.kafka.streams.kstream.Materialized c]]")
+  [:noah.core/stream :noah.core/fn-2 org.apache.kafka.streams.kstream.Named
+   org.apache.kafka.streams.kstream.Materialized]
+  [this a b c]
+  (.reduce
+   this
+   (noah.fn-wrap/reducer a)
+   b
+   c))
 (defmethod
   reduce
   [:noah.core/table :noah.core/fn-2 :noah.core/fn-2 org.apache.kafka.streams.kstream.Materialized]
@@ -374,11 +398,17 @@
    this
    (noah.fn-wrap/reducer a)
    (noah.fn-wrap/reducer b)))
-(clojure.core/comment
-  noah.impl/skipped
+(defmethod
   reduce
-  "(this (noah.fn-wrap/reducer a) (noah.fn-wrap/reducer b) nil d)
- <- [[org.apache.kafka.streams.kstream.KGroupedTable this] [org.apache.kafka.streams.kstream.Reducer a] [org.apache.kafka.streams.kstream.Reducer b] [org.apache.kafka.streams.kstream.Named c] [org.apache.kafka.streams.kstream.Materialized d]]")
+  [:noah.core/table :noah.core/fn-2 :noah.core/fn-2 org.apache.kafka.streams.kstream.Named
+   org.apache.kafka.streams.kstream.Materialized]
+  [this a b c d]
+  (.reduce
+   this
+   (noah.fn-wrap/reducer a)
+   (noah.fn-wrap/reducer b)
+   c
+   d))
 (defmethod
   reduce
   [:noah.core/stream :noah.core/fn-2]
@@ -386,19 +416,19 @@
   (.reduce
    this
    (noah.fn-wrap/reducer a)))
-(clojure.core/comment
-  noah.impl/skipped
-  reduce
-  "(this (noah.fn-wrap/reducer a) nil c)
- <- [[org.apache.kafka.streams.kstream.SessionWindowedKStream this] [org.apache.kafka.streams.kstream.Reducer a] [org.apache.kafka.streams.kstream.Named b] [org.apache.kafka.streams.kstream.Materialized c]]")
-(clojure.core/comment
-  noah.impl/skipped
-  reduce
-  "(this (noah.fn-wrap/reducer a) nil)
- <- [[org.apache.kafka.streams.kstream.SessionWindowedKStream this] [org.apache.kafka.streams.kstream.Reducer a] [org.apache.kafka.streams.kstream.Named b]]")
 (defmethod
   reduce
-  [:noah.core/stream :noah.core/fn-2 org.apache.kafka.streams.kstream.Materialized]
+  [:noah.core/stream :noah.core/fn-2 org.apache.kafka.streams.kstream.Named
+   org.apache.kafka.streams.kstream.Materialized]
+  [this a b c]
+  (.reduce
+   this
+   (noah.fn-wrap/reducer a)
+   b
+   c))
+(defmethod
+  reduce
+  [:noah.core/stream :noah.core/fn-2 org.apache.kafka.streams.kstream.Named]
   [this a b]
   (.reduce
    this
@@ -412,11 +442,22 @@
    this
    (noah.fn-wrap/reducer a)
    b))
-(clojure.core/comment
-  noah.impl/skipped
+(defmethod
   reduce
-  "(this (noah.fn-wrap/reducer a) nil)
- <- [[org.apache.kafka.streams.kstream.TimeWindowedKStream this] [org.apache.kafka.streams.kstream.Reducer a] [org.apache.kafka.streams.kstream.Named b]]")
+  [:noah.core/stream :noah.core/fn-2 org.apache.kafka.streams.kstream.Materialized]
+  [this a b]
+  (.reduce
+   this
+   (noah.fn-wrap/reducer a)
+   b))
+(defmethod
+  reduce
+  [:noah.core/stream :noah.core/fn-2 org.apache.kafka.streams.kstream.Named]
+  [this a b]
+  (.reduce
+   this
+   (noah.fn-wrap/reducer a)
+   b))
 (defmethod
   reduce
   [:noah.core/stream :noah.core/fn-2]
@@ -424,11 +465,16 @@
   (.reduce
    this
    (noah.fn-wrap/reducer a)))
-(clojure.core/comment
-  noah.impl/skipped
+(defmethod
   reduce
-  "(this (noah.fn-wrap/reducer a) nil c)
- <- [[org.apache.kafka.streams.kstream.TimeWindowedKStream this] [org.apache.kafka.streams.kstream.Reducer a] [org.apache.kafka.streams.kstream.Named b] [org.apache.kafka.streams.kstream.Materialized c]]")
+  [:noah.core/stream :noah.core/fn-2 org.apache.kafka.streams.kstream.Named
+   org.apache.kafka.streams.kstream.Materialized]
+  [this a b c]
+  (.reduce
+   this
+   (noah.fn-wrap/reducer a)
+   b
+   c))
 (defmethod
   windowed-by
   [:noah.core/stream org.apache.kafka.streams.kstream.SessionWindows]
@@ -453,11 +499,17 @@
    (noah.fn-wrap/initializer a)
    (noah.fn-wrap/aggregator b)
    c))
-(clojure.core/comment
-  noah.impl/skipped
+(defmethod
   aggregate
-  "(this (noah.fn-wrap/initializer a) (noah.fn-wrap/aggregator b) nil d)
- <- [[org.apache.kafka.streams.kstream.KGroupedStream this] [org.apache.kafka.streams.kstream.Initializer a] [org.apache.kafka.streams.kstream.Aggregator b] [org.apache.kafka.streams.kstream.Named c] [org.apache.kafka.streams.kstream.Materialized d]]")
+  [:noah.core/stream :noah.core/fn-0 :noah.core/fn-3 org.apache.kafka.streams.kstream.Named
+   org.apache.kafka.streams.kstream.Materialized]
+  [this a b c d]
+  (.aggregate
+   this
+   (noah.fn-wrap/initializer a)
+   (noah.fn-wrap/aggregator b)
+   c
+   d))
 (defmethod
   aggregate
   [:noah.core/stream :noah.core/fn-0 :noah.core/fn-3]
@@ -476,11 +528,18 @@
    (noah.fn-wrap/aggregator b)
    (noah.fn-wrap/aggregator c)
    d))
-(clojure.core/comment
-  noah.impl/skipped
+(defmethod
   aggregate
-  "(this (noah.fn-wrap/initializer a) (noah.fn-wrap/aggregator b) (noah.fn-wrap/aggregator c) nil e)
- <- [[org.apache.kafka.streams.kstream.KGroupedTable this] [org.apache.kafka.streams.kstream.Initializer a] [org.apache.kafka.streams.kstream.Aggregator b] [org.apache.kafka.streams.kstream.Aggregator c] [org.apache.kafka.streams.kstream.Named d] [org.apache.kafka.streams.kstream.Materialized e]]")
+  [:noah.core/table :noah.core/fn-0 :noah.core/fn-3 :noah.core/fn-3 org.apache.kafka.streams.kstream.Named
+   org.apache.kafka.streams.kstream.Materialized]
+  [this a b c d e]
+  (.aggregate
+   this
+   (noah.fn-wrap/initializer a)
+   (noah.fn-wrap/aggregator b)
+   (noah.fn-wrap/aggregator c)
+   d
+   e))
 (defmethod
   aggregate
   [:noah.core/table :noah.core/fn-0 :noah.core/fn-3 :noah.core/fn-3]
@@ -490,21 +549,38 @@
    (noah.fn-wrap/initializer a)
    (noah.fn-wrap/aggregator b)
    (noah.fn-wrap/aggregator c)))
-(clojure.core/comment
-  noah.impl/skipped
+(defmethod
   aggregate
-  "(this (noah.fn-wrap/initializer a) (noah.fn-wrap/aggregator b) (noah.fn-wrap/aggregator c) nil)
- <- [[org.apache.kafka.streams.kstream.KGroupedTable this] [org.apache.kafka.streams.kstream.Initializer a] [org.apache.kafka.streams.kstream.Aggregator b] [org.apache.kafka.streams.kstream.Aggregator c] [org.apache.kafka.streams.kstream.Named d]]")
-(clojure.core/comment
-  noah.impl/skipped
+  [:noah.core/table :noah.core/fn-0 :noah.core/fn-3 :noah.core/fn-3 org.apache.kafka.streams.kstream.Named]
+  [this a b c d]
+  (.aggregate
+   this
+   (noah.fn-wrap/initializer a)
+   (noah.fn-wrap/aggregator b)
+   (noah.fn-wrap/aggregator c)
+   d))
+(defmethod
   aggregate
-  "(this (noah.fn-wrap/initializer a) (noah.fn-wrap/aggregator b) (noah.fn-wrap/merger c) nil e)
- <- [[org.apache.kafka.streams.kstream.SessionWindowedKStream this] [org.apache.kafka.streams.kstream.Initializer a] [org.apache.kafka.streams.kstream.Aggregator b] [org.apache.kafka.streams.kstream.Merger c] [org.apache.kafka.streams.kstream.Named d] [org.apache.kafka.streams.kstream.Materialized e]]")
-(clojure.core/comment
-  noah.impl/skipped
+  [:noah.core/stream :noah.core/fn-0 :noah.core/fn-3 :noah.core/fn-3 org.apache.kafka.streams.kstream.Named
+   org.apache.kafka.streams.kstream.Materialized]
+  [this a b c d e]
+  (.aggregate
+   this
+   (noah.fn-wrap/initializer a)
+   (noah.fn-wrap/aggregator b)
+   (noah.fn-wrap/merger c)
+   d
+   e))
+(defmethod
   aggregate
-  "(this (noah.fn-wrap/initializer a) (noah.fn-wrap/aggregator b) (noah.fn-wrap/merger c) nil)
- <- [[org.apache.kafka.streams.kstream.SessionWindowedKStream this] [org.apache.kafka.streams.kstream.Initializer a] [org.apache.kafka.streams.kstream.Aggregator b] [org.apache.kafka.streams.kstream.Merger c] [org.apache.kafka.streams.kstream.Named d]]")
+  [:noah.core/stream :noah.core/fn-0 :noah.core/fn-3 :noah.core/fn-3 org.apache.kafka.streams.kstream.Named]
+  [this a b c d]
+  (.aggregate
+   this
+   (noah.fn-wrap/initializer a)
+   (noah.fn-wrap/aggregator b)
+   (noah.fn-wrap/merger c)
+   d))
 (defmethod
   aggregate
   [:noah.core/stream :noah.core/fn-0 :noah.core/fn-3 :noah.core/fn-3 org.apache.kafka.streams.kstream.Materialized]
@@ -533,11 +609,17 @@
    (noah.fn-wrap/initializer a)
    (noah.fn-wrap/aggregator b)
    c))
-(clojure.core/comment
-  noah.impl/skipped
+(defmethod
   aggregate
-  "(this (noah.fn-wrap/initializer a) (noah.fn-wrap/aggregator b) nil d)
- <- [[org.apache.kafka.streams.kstream.TimeWindowedKStream this] [org.apache.kafka.streams.kstream.Initializer a] [org.apache.kafka.streams.kstream.Aggregator b] [org.apache.kafka.streams.kstream.Named c] [org.apache.kafka.streams.kstream.Materialized d]]")
+  [:noah.core/stream :noah.core/fn-0 :noah.core/fn-3 org.apache.kafka.streams.kstream.Named
+   org.apache.kafka.streams.kstream.Materialized]
+  [this a b c d]
+  (.aggregate
+   this
+   (noah.fn-wrap/initializer a)
+   (noah.fn-wrap/aggregator b)
+   c
+   d))
 (defmethod
   aggregate
   [:noah.core/stream :noah.core/fn-0 :noah.core/fn-3]
@@ -546,11 +628,25 @@
    this
    (noah.fn-wrap/initializer a)
    (noah.fn-wrap/aggregator b)))
+(defmethod
+  aggregate
+  [:noah.core/stream :noah.core/fn-0 :noah.core/fn-3 org.apache.kafka.streams.kstream.Named]
+  [this a b c]
+  (.aggregate
+   this
+   (noah.fn-wrap/initializer a)
+   (noah.fn-wrap/aggregator b)
+   c))
 (clojure.core/comment
   noah.impl/skipped
-  aggregate
-  "(this (noah.fn-wrap/initializer a) (noah.fn-wrap/aggregator b) nil)
- <- [[org.apache.kafka.streams.kstream.TimeWindowedKStream this] [org.apache.kafka.streams.kstream.Initializer a] [org.apache.kafka.streams.kstream.Aggregator b] [org.apache.kafka.streams.kstream.Named c]]")
+  processValues
+  "(this nil (clojure.core/into-array java.lang.String (clojure.core/map clojure.core/identity vararg)))
+ <- [[org.apache.kafka.streams.kstream.KStream this nil] [org.apache.kafka.streams.processor.api.FixedKeyProcessorSupplier a nil] [java.lang.String b java.lang.String]]")
+(clojure.core/comment
+  noah.impl/skipped
+  processValues
+  "(this nil b (clojure.core/into-array java.lang.String (clojure.core/map clojure.core/identity vararg)))
+ <- [[org.apache.kafka.streams.kstream.KStream this nil] [org.apache.kafka.streams.processor.api.FixedKeyProcessorSupplier a nil] [org.apache.kafka.streams.kstream.Named b nil] [java.lang.String c java.lang.String]]")
 (defmethod
   peek
   [:noah.core/stream :noah.core/fn-2]
@@ -558,16 +654,27 @@
   (.peek
    this
    (noah.fn-wrap/foreach-action a)))
-(clojure.core/comment
-  noah.impl/skipped
+(defmethod
   peek
-  "(this (noah.fn-wrap/foreach-action a) nil)
- <- [[org.apache.kafka.streams.kstream.KStream this] [org.apache.kafka.streams.kstream.ForeachAction a] [org.apache.kafka.streams.kstream.Named b]]")
-(clojure.core/comment
-  noah.impl/skipped
+  [:noah.core/stream :noah.core/fn-2 org.apache.kafka.streams.kstream.Named]
+  [this a b]
+  (.peek
+   this
+   (noah.fn-wrap/foreach-action a)
+   b))
+(defmethod
   branch
-  "(this nil (clojure.core/into-array org.apache.kafka.streams.kstream.Predicate (clojure.core/map noah.fn-wrap/predicate vararg)))
- <- [[org.apache.kafka.streams.kstream.KStream this nil] [org.apache.kafka.streams.kstream.Named a nil] [org.apache.kafka.streams.kstream.Predicate b org.apache.kafka.streams.kstream.Predicate]]")
+  [:noah.core/stream org.apache.kafka.streams.kstream.Named
+   :noah.core/fn-2]
+  [this a vararg]
+  (.branch
+   this
+   a
+   (clojure.core/into-array
+    org.apache.kafka.streams.kstream.Predicate
+    (clojure.core/map
+     noah.fn-wrap/predicate
+     vararg))))
 (defmethod
   branch
   [:noah.core/stream :noah.core/fn-2]
@@ -597,11 +704,15 @@
    this
    (noah.fn-wrap/key-value-mapper
     a)))
-(clojure.core/comment
-  noah.impl/skipped
+(defmethod
   map
-  "(this (noah.fn-wrap/key-value-mapper a) nil)
- <- [[org.apache.kafka.streams.kstream.KStream this] [org.apache.kafka.streams.kstream.KeyValueMapper a] [org.apache.kafka.streams.kstream.Named b]]")
+  [:noah.core/stream :noah.core/fn-2 org.apache.kafka.streams.kstream.Named]
+  [this a b]
+  (.map
+   this
+   (noah.fn-wrap/key-value-mapper
+    a)
+   b))
 (defmethod
   join
   [:noah.core/stream :noah.core/table :noah.core/fn-2 org.apache.kafka.streams.kstream.Joined]
@@ -619,21 +730,68 @@
    this
    a
    (noah.fn-wrap/value-joiner b)))
+(defmethod
+  join
+  [:noah.core/stream :noah.core/stream :noah.core/fn-3 :noah.core/join-windows]
+  [this a b c]
+  (.join
+   this
+   a
+   (noah.fn-wrap/value-joiner-with-key
+    b)
+   c))
+(defmethod
+  join
+  [:noah.core/stream :noah.core/global-table :noah.core/fn-2 :noah.core/fn-3 org.apache.kafka.streams.kstream.Named]
+  [this a b c d]
+  (.join
+   this
+   a
+   (noah.fn-wrap/key-value-mapper
+    b)
+   (noah.fn-wrap/value-joiner-with-key
+    c)
+   d))
+(defmethod
+  join
+  [:noah.core/stream :noah.core/table :noah.core/fn-3 org.apache.kafka.streams.kstream.Joined]
+  [this a b c]
+  (.join
+   this
+   a
+   (noah.fn-wrap/value-joiner-with-key
+    b)
+   c))
+(defmethod
+  join
+  [:noah.core/stream :noah.core/table :noah.core/fn-3]
+  [this a b]
+  (.join
+   this
+   a
+   (noah.fn-wrap/value-joiner-with-key
+    b)))
 (clojure.core/comment
   noah.impl/skipped
   join
   "(this a (noah.fn-wrap/value-joiner b) c nil)
  <- [[org.apache.kafka.streams.kstream.KStream this] [org.apache.kafka.streams.kstream.KStream a] [org.apache.kafka.streams.kstream.ValueJoiner b] [org.apache.kafka.streams.kstream.JoinWindows c] [org.apache.kafka.streams.kstream.StreamJoined d]]")
+(clojure.core/comment
+  noah.impl/skipped
+  join
+  "(this a (noah.fn-wrap/value-joiner-with-key b) c nil)
+ <- [[org.apache.kafka.streams.kstream.KStream this] [org.apache.kafka.streams.kstream.KStream a] [org.apache.kafka.streams.kstream.ValueJoinerWithKey b] [org.apache.kafka.streams.kstream.JoinWindows c] [org.apache.kafka.streams.kstream.StreamJoined d]]")
 (defmethod
   join
-  [:noah.core/stream :noah.core/stream :noah.core/fn-2 :noah.core/join-windows org.apache.kafka.streams.kstream.Joined]
-  [this a b c d]
+  [:noah.core/stream :noah.core/global-table :noah.core/fn-2 :noah.core/fn-3]
+  [this a b c]
   (.join
    this
    a
-   (noah.fn-wrap/value-joiner b)
-   c
-   d))
+   (noah.fn-wrap/key-value-mapper
+    b)
+   (noah.fn-wrap/value-joiner-with-key
+    c)))
 (defmethod
   join
   [:noah.core/stream :noah.core/stream :noah.core/fn-2 :noah.core/join-windows]
@@ -653,26 +811,52 @@
    (noah.fn-wrap/key-value-mapper
     b)
    (noah.fn-wrap/value-joiner c)))
+(defmethod
+  join
+  [:noah.core/stream :noah.core/global-table :noah.core/fn-2 :noah.core/fn-2 org.apache.kafka.streams.kstream.Named]
+  [this a b c d]
+  (.join
+   this
+   a
+   (noah.fn-wrap/key-value-mapper
+    b)
+   (noah.fn-wrap/value-joiner c)
+   d))
 (clojure.core/comment
   noah.impl/skipped
   join
-  "(this a (noah.fn-wrap/key-value-mapper b) (noah.fn-wrap/value-joiner c) nil)
- <- [[org.apache.kafka.streams.kstream.KStream this] [org.apache.kafka.streams.kstream.GlobalKTable a] [org.apache.kafka.streams.kstream.KeyValueMapper b] [org.apache.kafka.streams.kstream.ValueJoiner c] [org.apache.kafka.streams.kstream.Named d]]")
+  "(this a nil (noah.fn-wrap/value-joiner c) nil e)
+ <- [[org.apache.kafka.streams.kstream.KTable this] [org.apache.kafka.streams.kstream.KTable a] [java.util.function.Function b] [org.apache.kafka.streams.kstream.ValueJoiner c] [org.apache.kafka.streams.kstream.TableJoined d] [org.apache.kafka.streams.kstream.Materialized e]]")
+(clojure.core/comment
+  noah.impl/skipped
+  join
+  "(this a nil (noah.fn-wrap/value-joiner c) nil)
+ <- [[org.apache.kafka.streams.kstream.KTable this] [org.apache.kafka.streams.kstream.KTable a] [java.util.function.Function b] [org.apache.kafka.streams.kstream.ValueJoiner c] [org.apache.kafka.streams.kstream.TableJoined d]]")
 (clojure.core/comment
   noah.impl/skipped
   join
   "(this a nil (noah.fn-wrap/value-joiner c))
  <- [[org.apache.kafka.streams.kstream.KTable this] [org.apache.kafka.streams.kstream.KTable a] [java.util.function.Function b] [org.apache.kafka.streams.kstream.ValueJoiner c]]")
-(clojure.core/comment
-  noah.impl/skipped
+(defmethod
   join
-  "(this a (noah.fn-wrap/value-joiner b) nil)
- <- [[org.apache.kafka.streams.kstream.KTable this] [org.apache.kafka.streams.kstream.KTable a] [org.apache.kafka.streams.kstream.ValueJoiner b] [org.apache.kafka.streams.kstream.Named c]]")
-(clojure.core/comment
-  noah.impl/skipped
+  [:noah.core/table :noah.core/table :noah.core/fn-2 org.apache.kafka.streams.kstream.Named]
+  [this a b c]
+  (.join
+   this
+   a
+   (noah.fn-wrap/value-joiner b)
+   c))
+(defmethod
   join
-  "(this a (noah.fn-wrap/value-joiner b) nil d)
- <- [[org.apache.kafka.streams.kstream.KTable this] [org.apache.kafka.streams.kstream.KTable a] [org.apache.kafka.streams.kstream.ValueJoiner b] [org.apache.kafka.streams.kstream.Named c] [org.apache.kafka.streams.kstream.Materialized d]]")
+  [:noah.core/table :noah.core/table :noah.core/fn-2 org.apache.kafka.streams.kstream.Named
+   org.apache.kafka.streams.kstream.Materialized]
+  [this a b c d]
+  (.join
+   this
+   a
+   (noah.fn-wrap/value-joiner b)
+   c
+   d))
 (defmethod
   join
   [:noah.core/table :noah.core/table :noah.core/fn-2]
@@ -693,7 +877,7 @@
 (clojure.core/comment
   noah.impl/skipped
   join
-  "(this a nil (noah.fn-wrap/value-joiner c) nil)
+  "(this a nil (noah.fn-wrap/value-joiner c) d)
  <- [[org.apache.kafka.streams.kstream.KTable this] [org.apache.kafka.streams.kstream.KTable a] [java.util.function.Function b] [org.apache.kafka.streams.kstream.ValueJoiner c] [org.apache.kafka.streams.kstream.Named d]]")
 (clojure.core/comment
   noah.impl/skipped
@@ -703,13 +887,16 @@
 (clojure.core/comment
   noah.impl/skipped
   join
-  "(this a nil (noah.fn-wrap/value-joiner c) nil e)
+  "(this a nil (noah.fn-wrap/value-joiner c) d e)
  <- [[org.apache.kafka.streams.kstream.KTable this] [org.apache.kafka.streams.kstream.KTable a] [java.util.function.Function b] [org.apache.kafka.streams.kstream.ValueJoiner c] [org.apache.kafka.streams.kstream.Named d] [org.apache.kafka.streams.kstream.Materialized e]]")
-(clojure.core/comment
-  noah.impl/skipped
-  flatMapValues
-  "(this (noah.fn-wrap/value-mapper a) nil)
- <- [[org.apache.kafka.streams.kstream.KStream this] [org.apache.kafka.streams.kstream.ValueMapper a] [org.apache.kafka.streams.kstream.Named b]]")
+(defmethod
+  flat-map-values
+  [:noah.core/stream :noah.core/fn-1 org.apache.kafka.streams.kstream.Named]
+  [this a b]
+  (.flatMapValues
+   this
+   (noah.fn-wrap/value-mapper a)
+   b))
 (defmethod
   flat-map-values
   [:noah.core/stream :noah.core/fn-1]
@@ -717,11 +904,15 @@
   (.flatMapValues
    this
    (noah.fn-wrap/value-mapper a)))
-(clojure.core/comment
-  noah.impl/skipped
-  flatMapValues
-  "(this (noah.fn-wrap/value-mapper-with-key a) nil)
- <- [[org.apache.kafka.streams.kstream.KStream this] [org.apache.kafka.streams.kstream.ValueMapperWithKey a] [org.apache.kafka.streams.kstream.Named b]]")
+(defmethod
+  flat-map-values
+  [:noah.core/stream :noah.core/fn-2 org.apache.kafka.streams.kstream.Named]
+  [this a b]
+  (.flatMapValues
+   this
+   (noah.fn-wrap/value-mapper-with-key
+    a)
+   b))
 (defmethod
   flat-map-values
   [:noah.core/stream :noah.core/fn-2]
@@ -773,26 +964,31 @@
   (.queryableStoreName this))
 (defmethod
   group-by-key
-  [:noah.core/stream :noah.core/serialized]
+  [:noah.core/stream :noah.core/grouped]
   [this a]
   (.groupByKey
    this
-   (noah.core/serialized a)))
-(defmethod
-  group-by-key
-  [:noah.core/stream org.apache.kafka.streams.kstream.Grouped]
-  [this a]
-  (.groupByKey this a))
+   (noah.core/grouped a)))
 (defmethod
   group-by-key
   [:noah.core/stream]
   [this]
   (.groupByKey this))
-(clojure.core/comment
-  noah.impl/skipped
+(defmethod
   transform
-  "(this a nil (clojure.core/into-array java.lang.String (clojure.core/map clojure.core/identity vararg)))
- <- [[org.apache.kafka.streams.kstream.KStream this nil] [org.apache.kafka.streams.kstream.TransformerSupplier a nil] [org.apache.kafka.streams.kstream.Named b nil] [java.lang.String c java.lang.String]]")
+  [:noah.core/stream org.apache.kafka.streams.kstream.TransformerSupplier
+   org.apache.kafka.streams.kstream.Named
+   java.lang.String]
+  [this a b vararg]
+  (.transform
+   this
+   a
+   b
+   (clojure.core/into-array
+    java.lang.String
+    (clojure.core/map
+     clojure.core/identity
+     vararg))))
 (defmethod
   transform
   [:noah.core/stream org.apache.kafka.streams.kstream.TransformerSupplier
@@ -848,19 +1044,37 @@
   (.addStateStore this a))
 (defmethod
   left-join
-  [:noah.core/stream :noah.core/stream :noah.core/fn-2 :noah.core/join-windows org.apache.kafka.streams.kstream.Joined]
+  [:noah.core/stream :noah.core/global-table :noah.core/fn-2 :noah.core/fn-3 org.apache.kafka.streams.kstream.Named]
   [this a b c d]
   (.leftJoin
    this
    a
-   (noah.fn-wrap/value-joiner b)
-   c
+   (noah.fn-wrap/key-value-mapper
+    b)
+   (noah.fn-wrap/value-joiner-with-key
+    c)
    d))
+(defmethod
+  left-join
+  [:noah.core/stream :noah.core/global-table :noah.core/fn-2 :noah.core/fn-3]
+  [this a b c]
+  (.leftJoin
+   this
+   a
+   (noah.fn-wrap/key-value-mapper
+    b)
+   (noah.fn-wrap/value-joiner-with-key
+    c)))
 (clojure.core/comment
   noah.impl/skipped
   leftJoin
   "(this a (noah.fn-wrap/value-joiner b) c nil)
  <- [[org.apache.kafka.streams.kstream.KStream this] [org.apache.kafka.streams.kstream.KStream a] [org.apache.kafka.streams.kstream.ValueJoiner b] [org.apache.kafka.streams.kstream.JoinWindows c] [org.apache.kafka.streams.kstream.StreamJoined d]]")
+(clojure.core/comment
+  noah.impl/skipped
+  leftJoin
+  "(this a (noah.fn-wrap/value-joiner-with-key b) c nil)
+ <- [[org.apache.kafka.streams.kstream.KStream this] [org.apache.kafka.streams.kstream.KStream a] [org.apache.kafka.streams.kstream.ValueJoinerWithKey b] [org.apache.kafka.streams.kstream.JoinWindows c] [org.apache.kafka.streams.kstream.StreamJoined d]]")
 (defmethod
   left-join
   [:noah.core/stream :noah.core/table :noah.core/fn-2]
@@ -869,11 +1083,17 @@
    this
    a
    (noah.fn-wrap/value-joiner b)))
-(clojure.core/comment
-  noah.impl/skipped
-  leftJoin
-  "(this a (noah.fn-wrap/key-value-mapper b) (noah.fn-wrap/value-joiner c) nil)
- <- [[org.apache.kafka.streams.kstream.KStream this] [org.apache.kafka.streams.kstream.GlobalKTable a] [org.apache.kafka.streams.kstream.KeyValueMapper b] [org.apache.kafka.streams.kstream.ValueJoiner c] [org.apache.kafka.streams.kstream.Named d]]")
+(defmethod
+  left-join
+  [:noah.core/stream :noah.core/global-table :noah.core/fn-2 :noah.core/fn-2 org.apache.kafka.streams.kstream.Named]
+  [this a b c d]
+  (.leftJoin
+   this
+   a
+   (noah.fn-wrap/key-value-mapper
+    b)
+   (noah.fn-wrap/value-joiner c)
+   d))
 (defmethod
   left-join
   [:noah.core/stream :noah.core/stream :noah.core/fn-2 :noah.core/join-windows]
@@ -882,6 +1102,26 @@
    this
    a
    (noah.fn-wrap/value-joiner b)
+   c))
+(defmethod
+  left-join
+  [:noah.core/stream :noah.core/stream :noah.core/fn-3 :noah.core/join-windows]
+  [this a b c]
+  (.leftJoin
+   this
+   a
+   (noah.fn-wrap/value-joiner-with-key
+    b)
+   c))
+(defmethod
+  left-join
+  [:noah.core/stream :noah.core/table :noah.core/fn-3 org.apache.kafka.streams.kstream.Joined]
+  [this a b c]
+  (.leftJoin
+   this
+   a
+   (noah.fn-wrap/value-joiner-with-key
+    b)
    c))
 (defmethod
   left-join
@@ -902,16 +1142,31 @@
    a
    (noah.fn-wrap/value-joiner b)
    c))
+(defmethod
+  left-join
+  [:noah.core/stream :noah.core/table :noah.core/fn-3]
+  [this a b]
+  (.leftJoin
+   this
+   a
+   (noah.fn-wrap/value-joiner-with-key
+    b)))
 (clojure.core/comment
   noah.impl/skipped
   leftJoin
-  "(this a nil (noah.fn-wrap/value-joiner c) nil e)
+  "(this a nil (noah.fn-wrap/value-joiner c) d e)
  <- [[org.apache.kafka.streams.kstream.KTable this] [org.apache.kafka.streams.kstream.KTable a] [java.util.function.Function b] [org.apache.kafka.streams.kstream.ValueJoiner c] [org.apache.kafka.streams.kstream.Named d] [org.apache.kafka.streams.kstream.Materialized e]]")
-(clojure.core/comment
-  noah.impl/skipped
-  leftJoin
-  "(this a (noah.fn-wrap/value-joiner b) nil d)
- <- [[org.apache.kafka.streams.kstream.KTable this] [org.apache.kafka.streams.kstream.KTable a] [org.apache.kafka.streams.kstream.ValueJoiner b] [org.apache.kafka.streams.kstream.Named c] [org.apache.kafka.streams.kstream.Materialized d]]")
+(defmethod
+  left-join
+  [:noah.core/table :noah.core/table :noah.core/fn-2 org.apache.kafka.streams.kstream.Named
+   org.apache.kafka.streams.kstream.Materialized]
+  [this a b c d]
+  (.leftJoin
+   this
+   a
+   (noah.fn-wrap/value-joiner b)
+   c
+   d))
 (clojure.core/comment
   noah.impl/skipped
   leftJoin
@@ -922,16 +1177,25 @@
   leftJoin
   "(this a nil (noah.fn-wrap/value-joiner c) d)
  <- [[org.apache.kafka.streams.kstream.KTable this] [org.apache.kafka.streams.kstream.KTable a] [java.util.function.Function b] [org.apache.kafka.streams.kstream.ValueJoiner c] [org.apache.kafka.streams.kstream.Materialized d]]")
+(defmethod
+  left-join
+  [:noah.core/table :noah.core/table :noah.core/fn-2 org.apache.kafka.streams.kstream.Named]
+  [this a b c]
+  (.leftJoin
+   this
+   a
+   (noah.fn-wrap/value-joiner b)
+   c))
 (clojure.core/comment
   noah.impl/skipped
   leftJoin
-  "(this a (noah.fn-wrap/value-joiner b) nil)
- <- [[org.apache.kafka.streams.kstream.KTable this] [org.apache.kafka.streams.kstream.KTable a] [org.apache.kafka.streams.kstream.ValueJoiner b] [org.apache.kafka.streams.kstream.Named c]]")
-(clojure.core/comment
-  noah.impl/skipped
-  leftJoin
-  "(this a nil (noah.fn-wrap/value-joiner c) nil)
+  "(this a nil (noah.fn-wrap/value-joiner c) d)
  <- [[org.apache.kafka.streams.kstream.KTable this] [org.apache.kafka.streams.kstream.KTable a] [java.util.function.Function b] [org.apache.kafka.streams.kstream.ValueJoiner c] [org.apache.kafka.streams.kstream.Named d]]")
+(clojure.core/comment
+  noah.impl/skipped
+  leftJoin
+  "(this a nil (noah.fn-wrap/value-joiner c) nil e)
+ <- [[org.apache.kafka.streams.kstream.KTable this] [org.apache.kafka.streams.kstream.KTable a] [java.util.function.Function b] [org.apache.kafka.streams.kstream.ValueJoiner c] [org.apache.kafka.streams.kstream.TableJoined d] [org.apache.kafka.streams.kstream.Materialized e]]")
 (defmethod
   left-join
   [:noah.core/table :noah.core/table :noah.core/fn-2 org.apache.kafka.streams.kstream.Materialized]
@@ -949,6 +1213,11 @@
    this
    a
    (noah.fn-wrap/value-joiner b)))
+(clojure.core/comment
+  noah.impl/skipped
+  leftJoin
+  "(this a nil (noah.fn-wrap/value-joiner c) nil)
+ <- [[org.apache.kafka.streams.kstream.KTable this] [org.apache.kafka.streams.kstream.KTable a] [java.util.function.Function b] [org.apache.kafka.streams.kstream.ValueJoiner c] [org.apache.kafka.streams.kstream.TableJoined d]]")
 (defmethod
   filter-not
   [:noah.core/stream :noah.core/fn-2]
@@ -956,11 +1225,14 @@
   (.filterNot
    this
    (noah.fn-wrap/predicate a)))
-(clojure.core/comment
-  noah.impl/skipped
-  filterNot
-  "(this (noah.fn-wrap/predicate a) nil)
- <- [[org.apache.kafka.streams.kstream.KStream this] [org.apache.kafka.streams.kstream.Predicate a] [org.apache.kafka.streams.kstream.Named b]]")
+(defmethod
+  filter-not
+  [:noah.core/stream :noah.core/fn-2 org.apache.kafka.streams.kstream.Named]
+  [this a b]
+  (.filterNot
+   this
+   (noah.fn-wrap/predicate a)
+   b))
 (defmethod
   filter-not
   [:noah.core/table :noah.core/fn-2]
@@ -968,11 +1240,16 @@
   (.filterNot
    this
    (noah.fn-wrap/predicate a)))
-(clojure.core/comment
-  noah.impl/skipped
-  filterNot
-  "(this (noah.fn-wrap/predicate a) nil c)
- <- [[org.apache.kafka.streams.kstream.KTable this] [org.apache.kafka.streams.kstream.Predicate a] [org.apache.kafka.streams.kstream.Named b] [org.apache.kafka.streams.kstream.Materialized c]]")
+(defmethod
+  filter-not
+  [:noah.core/table :noah.core/fn-2 org.apache.kafka.streams.kstream.Named
+   org.apache.kafka.streams.kstream.Materialized]
+  [this a b c]
+  (.filterNot
+   this
+   (noah.fn-wrap/predicate a)
+   b
+   c))
 (defmethod
   filter-not
   [:noah.core/table :noah.core/fn-2 org.apache.kafka.streams.kstream.Materialized]
@@ -981,11 +1258,14 @@
    this
    (noah.fn-wrap/predicate a)
    b))
-(clojure.core/comment
-  noah.impl/skipped
-  filterNot
-  "(this (noah.fn-wrap/predicate a) nil)
- <- [[org.apache.kafka.streams.kstream.KTable this] [org.apache.kafka.streams.kstream.Predicate a] [org.apache.kafka.streams.kstream.Named b]]")
+(defmethod
+  filter-not
+  [:noah.core/table :noah.core/fn-2 org.apache.kafka.streams.kstream.Named]
+  [this a b]
+  (.filterNot
+   this
+   (noah.fn-wrap/predicate a)
+   b))
 (defmethod
   map-values
   [:noah.core/stream :noah.core/fn-1]
@@ -993,16 +1273,23 @@
   (.mapValues
    this
    (noah.fn-wrap/value-mapper a)))
-(clojure.core/comment
-  noah.impl/skipped
-  mapValues
-  "(this (noah.fn-wrap/value-mapper a) nil)
- <- [[org.apache.kafka.streams.kstream.KStream this] [org.apache.kafka.streams.kstream.ValueMapper a] [org.apache.kafka.streams.kstream.Named b]]")
-(clojure.core/comment
-  noah.impl/skipped
-  mapValues
-  "(this (noah.fn-wrap/value-mapper-with-key a) nil)
- <- [[org.apache.kafka.streams.kstream.KStream this] [org.apache.kafka.streams.kstream.ValueMapperWithKey a] [org.apache.kafka.streams.kstream.Named b]]")
+(defmethod
+  map-values
+  [:noah.core/stream :noah.core/fn-1 org.apache.kafka.streams.kstream.Named]
+  [this a b]
+  (.mapValues
+   this
+   (noah.fn-wrap/value-mapper a)
+   b))
+(defmethod
+  map-values
+  [:noah.core/stream :noah.core/fn-2 org.apache.kafka.streams.kstream.Named]
+  [this a b]
+  (.mapValues
+   this
+   (noah.fn-wrap/value-mapper-with-key
+    a)
+   b))
 (defmethod
   map-values
   [:noah.core/stream :noah.core/fn-2]
@@ -1011,11 +1298,15 @@
    this
    (noah.fn-wrap/value-mapper-with-key
     a)))
-(clojure.core/comment
-  noah.impl/skipped
-  mapValues
-  "(this (noah.fn-wrap/value-mapper-with-key a) nil)
- <- [[org.apache.kafka.streams.kstream.KTable this] [org.apache.kafka.streams.kstream.ValueMapperWithKey a] [org.apache.kafka.streams.kstream.Named b]]")
+(defmethod
+  map-values
+  [:noah.core/table :noah.core/fn-2 org.apache.kafka.streams.kstream.Named]
+  [this a b]
+  (.mapValues
+   this
+   (noah.fn-wrap/value-mapper-with-key
+    a)
+   b))
 (defmethod
   map-values
   [:noah.core/table :noah.core/fn-2 org.apache.kafka.streams.kstream.Materialized]
@@ -1041,16 +1332,24 @@
    this
    (noah.fn-wrap/value-mapper a)
    b))
-(clojure.core/comment
-  noah.impl/skipped
-  mapValues
-  "(this (noah.fn-wrap/value-mapper a) nil)
- <- [[org.apache.kafka.streams.kstream.KTable this] [org.apache.kafka.streams.kstream.ValueMapper a] [org.apache.kafka.streams.kstream.Named b]]")
-(clojure.core/comment
-  noah.impl/skipped
-  mapValues
-  "(this (noah.fn-wrap/value-mapper a) nil c)
- <- [[org.apache.kafka.streams.kstream.KTable this] [org.apache.kafka.streams.kstream.ValueMapper a] [org.apache.kafka.streams.kstream.Named b] [org.apache.kafka.streams.kstream.Materialized c]]")
+(defmethod
+  map-values
+  [:noah.core/table :noah.core/fn-1 org.apache.kafka.streams.kstream.Named]
+  [this a b]
+  (.mapValues
+   this
+   (noah.fn-wrap/value-mapper a)
+   b))
+(defmethod
+  map-values
+  [:noah.core/table :noah.core/fn-1 org.apache.kafka.streams.kstream.Named
+   org.apache.kafka.streams.kstream.Materialized]
+  [this a b c]
+  (.mapValues
+   this
+   (noah.fn-wrap/value-mapper a)
+   b
+   c))
 (defmethod
   map-values
   [:noah.core/table :noah.core/fn-1]
@@ -1058,11 +1357,17 @@
   (.mapValues
    this
    (noah.fn-wrap/value-mapper a)))
-(clojure.core/comment
-  noah.impl/skipped
-  mapValues
-  "(this (noah.fn-wrap/value-mapper-with-key a) nil c)
- <- [[org.apache.kafka.streams.kstream.KTable this] [org.apache.kafka.streams.kstream.ValueMapperWithKey a] [org.apache.kafka.streams.kstream.Named b] [org.apache.kafka.streams.kstream.Materialized c]]")
+(defmethod
+  map-values
+  [:noah.core/table :noah.core/fn-2 org.apache.kafka.streams.kstream.Named
+   org.apache.kafka.streams.kstream.Materialized]
+  [this a b c]
+  (.mapValues
+   this
+   (noah.fn-wrap/value-mapper-with-key
+    a)
+   b
+   c))
 (defmethod
   through
   [:noah.core/stream java.lang.String]
@@ -1090,21 +1395,45 @@
     (clojure.core/map
      clojure.core/identity
      vararg))))
+(defmethod
+  process
+  [:noah.core/stream org.apache.kafka.streams.processor.ProcessorSupplier
+   org.apache.kafka.streams.kstream.Named
+   java.lang.String]
+  [this a b vararg]
+  (.process
+   this
+   a
+   b
+   (clojure.core/into-array
+    java.lang.String
+    (clojure.core/map
+     clojure.core/identity
+     vararg))))
 (clojure.core/comment
   noah.impl/skipped
   process
-  "(this a nil (clojure.core/into-array java.lang.String (clojure.core/map clojure.core/identity vararg)))
- <- [[org.apache.kafka.streams.kstream.KStream this nil] [org.apache.kafka.streams.processor.ProcessorSupplier a nil] [org.apache.kafka.streams.kstream.Named b nil] [java.lang.String c java.lang.String]]")
+  "(this nil (clojure.core/into-array java.lang.String (clojure.core/map clojure.core/identity vararg)))
+ <- [[org.apache.kafka.streams.kstream.KStream this nil] [org.apache.kafka.streams.processor.api.ProcessorSupplier a nil] [java.lang.String b java.lang.String]]")
 (clojure.core/comment
   noah.impl/skipped
-  toStream
-  "(this nil)
- <- [[org.apache.kafka.streams.kstream.KTable this] [org.apache.kafka.streams.kstream.Named a]]")
-(clojure.core/comment
-  noah.impl/skipped
-  toStream
-  "(this (noah.fn-wrap/key-value-mapper a) nil)
- <- [[org.apache.kafka.streams.kstream.KTable this] [org.apache.kafka.streams.kstream.KeyValueMapper a] [org.apache.kafka.streams.kstream.Named b]]")
+  process
+  "(this nil b (clojure.core/into-array java.lang.String (clojure.core/map clojure.core/identity vararg)))
+ <- [[org.apache.kafka.streams.kstream.KStream this nil] [org.apache.kafka.streams.processor.api.ProcessorSupplier a nil] [org.apache.kafka.streams.kstream.Named b nil] [java.lang.String c java.lang.String]]")
+(defmethod
+  to-stream
+  [:noah.core/table org.apache.kafka.streams.kstream.Named]
+  [this a]
+  (.toStream this a))
+(defmethod
+  to-stream
+  [:noah.core/table :noah.core/fn-2 org.apache.kafka.streams.kstream.Named]
+  [this a b]
+  (.toStream
+   this
+   (noah.fn-wrap/key-value-mapper
+    a)
+   b))
 (defmethod
   to-stream
   [:noah.core/table]
@@ -1118,11 +1447,21 @@
    this
    (noah.fn-wrap/key-value-mapper
     a)))
-(clojure.core/comment
-  noah.impl/skipped
-  flatTransform
-  "(this a nil (clojure.core/into-array java.lang.String (clojure.core/map clojure.core/identity vararg)))
- <- [[org.apache.kafka.streams.kstream.KStream this nil] [org.apache.kafka.streams.kstream.TransformerSupplier a nil] [org.apache.kafka.streams.kstream.Named b nil] [java.lang.String c java.lang.String]]")
+(defmethod
+  flat-transform
+  [:noah.core/stream org.apache.kafka.streams.kstream.TransformerSupplier
+   org.apache.kafka.streams.kstream.Named
+   java.lang.String]
+  [this a b vararg]
+  (.flatTransform
+   this
+   a
+   b
+   (clojure.core/into-array
+    java.lang.String
+    (clojure.core/map
+     clojure.core/identity
+     vararg))))
 (defmethod
   flat-transform
   [:noah.core/stream org.apache.kafka.streams.kstream.TransformerSupplier
@@ -1153,23 +1492,32 @@
 (clojure.core/comment
   noah.impl/skipped
   outerJoin
+  "(this a (noah.fn-wrap/value-joiner-with-key b) c nil)
+ <- [[org.apache.kafka.streams.kstream.KStream this] [org.apache.kafka.streams.kstream.KStream a] [org.apache.kafka.streams.kstream.ValueJoinerWithKey b] [org.apache.kafka.streams.kstream.JoinWindows c] [org.apache.kafka.streams.kstream.StreamJoined d]]")
+(defmethod
+  outer-join
+  [:noah.core/stream :noah.core/stream :noah.core/fn-3 :noah.core/join-windows]
+  [this a b c]
+  (.outerJoin
+   this
+   a
+   (noah.fn-wrap/value-joiner-with-key
+    b)
+   c))
+(clojure.core/comment
+  noah.impl/skipped
+  outerJoin
   "(this a (noah.fn-wrap/value-joiner b) c nil)
  <- [[org.apache.kafka.streams.kstream.KStream this] [org.apache.kafka.streams.kstream.KStream a] [org.apache.kafka.streams.kstream.ValueJoiner b] [org.apache.kafka.streams.kstream.JoinWindows c] [org.apache.kafka.streams.kstream.StreamJoined d]]")
 (defmethod
   outer-join
-  [:noah.core/stream :noah.core/stream :noah.core/fn-2 :noah.core/join-windows org.apache.kafka.streams.kstream.Joined]
-  [this a b c d]
+  [:noah.core/table :noah.core/table :noah.core/fn-2 org.apache.kafka.streams.kstream.Named]
+  [this a b c]
   (.outerJoin
    this
    a
    (noah.fn-wrap/value-joiner b)
-   c
-   d))
-(clojure.core/comment
-  noah.impl/skipped
-  outerJoin
-  "(this a (noah.fn-wrap/value-joiner b) nil)
- <- [[org.apache.kafka.streams.kstream.KTable this] [org.apache.kafka.streams.kstream.KTable a] [org.apache.kafka.streams.kstream.ValueJoiner b] [org.apache.kafka.streams.kstream.Named c]]")
+   c))
 (defmethod
   outer-join
   [:noah.core/table :noah.core/table :noah.core/fn-2]
@@ -1187,16 +1535,22 @@
    a
    (noah.fn-wrap/value-joiner b)
    c))
-(clojure.core/comment
-  noah.impl/skipped
-  outerJoin
-  "(this a (noah.fn-wrap/value-joiner b) nil d)
- <- [[org.apache.kafka.streams.kstream.KTable this] [org.apache.kafka.streams.kstream.KTable a] [org.apache.kafka.streams.kstream.ValueJoiner b] [org.apache.kafka.streams.kstream.Named c] [org.apache.kafka.streams.kstream.Materialized d]]")
-(clojure.core/comment
-  noah.impl/skipped
+(defmethod
+  outer-join
+  [:noah.core/table :noah.core/table :noah.core/fn-2 org.apache.kafka.streams.kstream.Named
+   org.apache.kafka.streams.kstream.Materialized]
+  [this a b c d]
+  (.outerJoin
+   this
+   a
+   (noah.fn-wrap/value-joiner b)
+   c
+   d))
+(defmethod
   merge
-  "(this a nil)
- <- [[org.apache.kafka.streams.kstream.KStream this] [org.apache.kafka.streams.kstream.KStream a] [org.apache.kafka.streams.kstream.Named b]]")
+  [:noah.core/stream :noah.core/stream org.apache.kafka.streams.kstream.Named]
+  [this a b]
+  (.merge this a b))
 (defmethod
   merge
   [:noah.core/stream :noah.core/stream]
@@ -1258,11 +1612,15 @@
    this
    (noah.fn-wrap/key-value-mapper
     a)))
-(clojure.core/comment
-  noah.impl/skipped
-  flatMap
-  "(this (noah.fn-wrap/key-value-mapper a) nil)
- <- [[org.apache.kafka.streams.kstream.KStream this] [org.apache.kafka.streams.kstream.KeyValueMapper a] [org.apache.kafka.streams.kstream.Named b]]")
+(defmethod
+  flat-map
+  [:noah.core/stream :noah.core/fn-2 org.apache.kafka.streams.kstream.Named]
+  [this a b]
+  (.flatMap
+   this
+   (noah.fn-wrap/key-value-mapper
+    a)
+   b))
 (defmethod
   global-table
   [org.apache.kafka.streams.StreamsBuilder
@@ -1330,16 +1688,36 @@
     (clojure.core/map
      clojure.core/identity
      vararg))))
-(clojure.core/comment
-  noah.impl/skipped
-  transformValues
-  "(this a nil (clojure.core/into-array java.lang.String (clojure.core/map clojure.core/identity vararg)))
- <- [[org.apache.kafka.streams.kstream.KStream this nil] [org.apache.kafka.streams.kstream.ValueTransformerSupplier a nil] [org.apache.kafka.streams.kstream.Named b nil] [java.lang.String c java.lang.String]]")
-(clojure.core/comment
-  noah.impl/skipped
-  transformValues
-  "(this a nil (clojure.core/into-array java.lang.String (clojure.core/map clojure.core/identity vararg)))
- <- [[org.apache.kafka.streams.kstream.KStream this nil] [org.apache.kafka.streams.kstream.ValueTransformerWithKeySupplier a nil] [org.apache.kafka.streams.kstream.Named b nil] [java.lang.String c java.lang.String]]")
+(defmethod
+  transform-values
+  [:noah.core/stream org.apache.kafka.streams.kstream.ValueTransformerSupplier
+   org.apache.kafka.streams.kstream.Named
+   java.lang.String]
+  [this a b vararg]
+  (.transformValues
+   this
+   a
+   b
+   (clojure.core/into-array
+    java.lang.String
+    (clojure.core/map
+     clojure.core/identity
+     vararg))))
+(defmethod
+  transform-values
+  [:noah.core/stream org.apache.kafka.streams.kstream.ValueTransformerWithKeySupplier
+   org.apache.kafka.streams.kstream.Named
+   java.lang.String]
+  [this a b vararg]
+  (.transformValues
+   this
+   a
+   b
+   (clojure.core/into-array
+    java.lang.String
+    (clojure.core/map
+     clojure.core/identity
+     vararg))))
 (defmethod
   transform-values
   [:noah.core/table org.apache.kafka.streams.kstream.ValueTransformerWithKeySupplier
@@ -1368,21 +1746,43 @@
     (clojure.core/map
      clojure.core/identity
      vararg))))
-(clojure.core/comment
-  noah.impl/skipped
-  transformValues
-  "(this a nil (clojure.core/into-array java.lang.String (clojure.core/map clojure.core/identity vararg)))
- <- [[org.apache.kafka.streams.kstream.KTable this nil] [org.apache.kafka.streams.kstream.ValueTransformerWithKeySupplier a nil] [org.apache.kafka.streams.kstream.Named b nil] [java.lang.String c java.lang.String]]")
-(clojure.core/comment
-  noah.impl/skipped
-  transformValues
-  "(this a b nil (clojure.core/into-array java.lang.String (clojure.core/map clojure.core/identity vararg)))
- <- [[org.apache.kafka.streams.kstream.KTable this nil] [org.apache.kafka.streams.kstream.ValueTransformerWithKeySupplier a nil] [org.apache.kafka.streams.kstream.Materialized b nil] [org.apache.kafka.streams.kstream.Named c nil] [java.lang.String d java.lang.String]]")
-(clojure.core/comment
-  noah.impl/skipped
+(defmethod
+  transform-values
+  [:noah.core/table org.apache.kafka.streams.kstream.ValueTransformerWithKeySupplier
+   org.apache.kafka.streams.kstream.Named
+   java.lang.String]
+  [this a b vararg]
+  (.transformValues
+   this
+   a
+   b
+   (clojure.core/into-array
+    java.lang.String
+    (clojure.core/map
+     clojure.core/identity
+     vararg))))
+(defmethod
+  transform-values
+  [:noah.core/table org.apache.kafka.streams.kstream.ValueTransformerWithKeySupplier
+   org.apache.kafka.streams.kstream.Materialized
+   org.apache.kafka.streams.kstream.Named
+   java.lang.String]
+  [this a b c vararg]
+  (.transformValues
+   this
+   a
+   b
+   c
+   (clojure.core/into-array
+    java.lang.String
+    (clojure.core/map
+     clojure.core/identity
+     vararg))))
+(defmethod
   split
-  "(this nil)
- <- [[org.apache.kafka.streams.kstream.KStream this] [org.apache.kafka.streams.kstream.Named a]]")
+  [:noah.core/stream org.apache.kafka.streams.kstream.Named]
+  [this a]
+  (.split this a))
 (defmethod
   split
   [:noah.core/stream]
@@ -1408,16 +1808,24 @@
   (.filter
    this
    (noah.fn-wrap/predicate a)))
-(clojure.core/comment
-  noah.impl/skipped
+(defmethod
   filter
-  "(this (noah.fn-wrap/predicate a) nil)
- <- [[org.apache.kafka.streams.kstream.KStream this] [org.apache.kafka.streams.kstream.Predicate a] [org.apache.kafka.streams.kstream.Named b]]")
-(clojure.core/comment
-  noah.impl/skipped
+  [:noah.core/stream :noah.core/fn-2 org.apache.kafka.streams.kstream.Named]
+  [this a b]
+  (.filter
+   this
+   (noah.fn-wrap/predicate a)
+   b))
+(defmethod
   filter
-  "(this (noah.fn-wrap/predicate a) nil c)
- <- [[org.apache.kafka.streams.kstream.KTable this] [org.apache.kafka.streams.kstream.Predicate a] [org.apache.kafka.streams.kstream.Named b] [org.apache.kafka.streams.kstream.Materialized c]]")
+  [:noah.core/table :noah.core/fn-2 org.apache.kafka.streams.kstream.Named
+   org.apache.kafka.streams.kstream.Materialized]
+  [this a b c]
+  (.filter
+   this
+   (noah.fn-wrap/predicate a)
+   b
+   c))
 (defmethod
   filter
   [:noah.core/table :noah.core/fn-2]
@@ -1433,16 +1841,22 @@
    this
    (noah.fn-wrap/predicate a)
    b))
-(clojure.core/comment
-  noah.impl/skipped
+(defmethod
   filter
-  "(this (noah.fn-wrap/predicate a) nil)
- <- [[org.apache.kafka.streams.kstream.KTable this] [org.apache.kafka.streams.kstream.Predicate a] [org.apache.kafka.streams.kstream.Named b]]")
-(clojure.core/comment
-  noah.impl/skipped
+  [:noah.core/table :noah.core/fn-2 org.apache.kafka.streams.kstream.Named]
+  [this a b]
+  (.filter
+   this
+   (noah.fn-wrap/predicate a)
+   b))
+(defmethod
   foreach
-  "(this (noah.fn-wrap/foreach-action a) nil)
- <- [[org.apache.kafka.streams.kstream.KStream this] [org.apache.kafka.streams.kstream.ForeachAction a] [org.apache.kafka.streams.kstream.Named b]]")
+  [:noah.core/stream :noah.core/fn-2 org.apache.kafka.streams.kstream.Named]
+  [this a b]
+  (.foreach
+   this
+   (noah.fn-wrap/foreach-action a)
+   b))
 (defmethod
   foreach
   [:noah.core/stream :noah.core/fn-2]
@@ -1463,11 +1877,21 @@
     (clojure.core/map
      clojure.core/identity
      vararg))))
-(clojure.core/comment
-  noah.impl/skipped
-  flatTransformValues
-  "(this a nil (clojure.core/into-array java.lang.String (clojure.core/map clojure.core/identity vararg)))
- <- [[org.apache.kafka.streams.kstream.KStream this nil] [org.apache.kafka.streams.kstream.ValueTransformerWithKeySupplier a nil] [org.apache.kafka.streams.kstream.Named b nil] [java.lang.String c java.lang.String]]")
+(defmethod
+  flat-transform-values
+  [:noah.core/stream org.apache.kafka.streams.kstream.ValueTransformerWithKeySupplier
+   org.apache.kafka.streams.kstream.Named
+   java.lang.String]
+  [this a b vararg]
+  (.flatTransformValues
+   this
+   a
+   b
+   (clojure.core/into-array
+    java.lang.String
+    (clojure.core/map
+     clojure.core/identity
+     vararg))))
 (defmethod
   flat-transform-values
   [:noah.core/stream org.apache.kafka.streams.kstream.ValueTransformerSupplier
@@ -1481,46 +1905,58 @@
     (clojure.core/map
      clojure.core/identity
      vararg))))
-(clojure.core/comment
-  noah.impl/skipped
-  flatTransformValues
-  "(this a nil (clojure.core/into-array java.lang.String (clojure.core/map clojure.core/identity vararg)))
- <- [[org.apache.kafka.streams.kstream.KStream this nil] [org.apache.kafka.streams.kstream.ValueTransformerSupplier a nil] [org.apache.kafka.streams.kstream.Named b nil] [java.lang.String c java.lang.String]]")
+(defmethod
+  flat-transform-values
+  [:noah.core/stream org.apache.kafka.streams.kstream.ValueTransformerSupplier
+   org.apache.kafka.streams.kstream.Named
+   java.lang.String]
+  [this a b vararg]
+  (.flatTransformValues
+   this
+   a
+   b
+   (clojure.core/into-array
+    java.lang.String
+    (clojure.core/map
+     clojure.core/identity
+     vararg))))
 (defmethod
   to-table
   [:noah.core/stream]
   [this]
   (.toTable this))
-(clojure.core/comment
-  noah.impl/skipped
-  toTable
-  "(this nil)
- <- [[org.apache.kafka.streams.kstream.KStream this] [org.apache.kafka.streams.kstream.Named a]]")
-(clojure.core/comment
-  noah.impl/skipped
-  toTable
-  "(this nil b)
- <- [[org.apache.kafka.streams.kstream.KStream this] [org.apache.kafka.streams.kstream.Named a] [org.apache.kafka.streams.kstream.Materialized b]]")
+(defmethod
+  to-table
+  [:noah.core/stream org.apache.kafka.streams.kstream.Named]
+  [this a]
+  (.toTable this a))
+(defmethod
+  to-table
+  [:noah.core/stream org.apache.kafka.streams.kstream.Named
+   org.apache.kafka.streams.kstream.Materialized]
+  [this a b]
+  (.toTable this a b))
 (defmethod
   to-table
   [:noah.core/stream org.apache.kafka.streams.kstream.Materialized]
   [this a]
   (.toTable this a))
-(clojure.core/comment
-  noah.impl/skipped
+(defmethod
   count
-  "(this nil b)
- <- [[org.apache.kafka.streams.kstream.KGroupedStream this] [org.apache.kafka.streams.kstream.Named a] [org.apache.kafka.streams.kstream.Materialized b]]")
+  [:noah.core/stream org.apache.kafka.streams.kstream.Named
+   org.apache.kafka.streams.kstream.Materialized]
+  [this a b]
+  (.count this a b))
 (defmethod
   count
   [:noah.core/stream org.apache.kafka.streams.kstream.Materialized]
   [this a]
   (.count this a))
-(clojure.core/comment
-  noah.impl/skipped
+(defmethod
   count
-  "(this nil)
- <- [[org.apache.kafka.streams.kstream.KGroupedStream this] [org.apache.kafka.streams.kstream.Named a]]")
+  [:noah.core/stream org.apache.kafka.streams.kstream.Named]
+  [this a]
+  (.count this a))
 (defmethod
   count
   [:noah.core/stream]
@@ -1536,65 +1972,59 @@
   [:noah.core/table]
   [this]
   (.count this))
-(clojure.core/comment
-  noah.impl/skipped
-  count
-  "(this nil)
- <- [[org.apache.kafka.streams.kstream.KGroupedTable this] [org.apache.kafka.streams.kstream.Named a]]")
-(clojure.core/comment
-  noah.impl/skipped
-  count
-  "(this nil b)
- <- [[org.apache.kafka.streams.kstream.KGroupedTable this] [org.apache.kafka.streams.kstream.Named a] [org.apache.kafka.streams.kstream.Materialized b]]")
-(clojure.core/comment
-  noah.impl/skipped
-  count
-  "(this nil)
- <- [[org.apache.kafka.streams.kstream.SessionWindowedKStream this] [org.apache.kafka.streams.kstream.Named a]]")
 (defmethod
   count
-  [:noah.core/stream org.apache.kafka.streams.kstream.Materialized]
+  [:noah.core/table org.apache.kafka.streams.kstream.Named]
   [this a]
   (.count this a))
-(clojure.core/comment
-  noah.impl/skipped
-  count
-  "(this nil b)
- <- [[org.apache.kafka.streams.kstream.SessionWindowedKStream this] [org.apache.kafka.streams.kstream.Named a] [org.apache.kafka.streams.kstream.Materialized b]]")
 (defmethod
   count
-  [:noah.core/stream]
-  [this]
-  (.count this))
-(defmethod
-  count
-  [:noah.core/stream]
-  [this]
-  (.count this))
-(clojure.core/comment
-  noah.impl/skipped
-  count
-  "(this nil b)
- <- [[org.apache.kafka.streams.kstream.TimeWindowedKStream this] [org.apache.kafka.streams.kstream.Named a] [org.apache.kafka.streams.kstream.Materialized b]]")
-(defmethod
-  count
-  [:noah.core/stream org.apache.kafka.streams.kstream.Materialized]
-  [this a]
-  (.count this a))
-(clojure.core/comment
-  noah.impl/skipped
-  count
-  "(this nil)
- <- [[org.apache.kafka.streams.kstream.TimeWindowedKStream this] [org.apache.kafka.streams.kstream.Named a]]")
-(defmethod
-  group-by
-  [:noah.core/stream :noah.core/fn-2 :noah.core/serialized]
+  [:noah.core/table org.apache.kafka.streams.kstream.Named
+   org.apache.kafka.streams.kstream.Materialized]
   [this a b]
-  (.groupBy
-   this
-   (noah.fn-wrap/key-value-mapper
-    a)
-   (noah.core/serialized b)))
+  (.count this a b))
+(defmethod
+  count
+  [:noah.core/stream org.apache.kafka.streams.kstream.Named]
+  [this a]
+  (.count this a))
+(defmethod
+  count
+  [:noah.core/stream org.apache.kafka.streams.kstream.Materialized]
+  [this a]
+  (.count this a))
+(defmethod
+  count
+  [:noah.core/stream org.apache.kafka.streams.kstream.Named
+   org.apache.kafka.streams.kstream.Materialized]
+  [this a b]
+  (.count this a b))
+(defmethod
+  count
+  [:noah.core/stream]
+  [this]
+  (.count this))
+(defmethod
+  count
+  [:noah.core/stream]
+  [this]
+  (.count this))
+(defmethod
+  count
+  [:noah.core/stream org.apache.kafka.streams.kstream.Named
+   org.apache.kafka.streams.kstream.Materialized]
+  [this a b]
+  (.count this a b))
+(defmethod
+  count
+  [:noah.core/stream org.apache.kafka.streams.kstream.Materialized]
+  [this a]
+  (.count this a))
+(defmethod
+  count
+  [:noah.core/stream org.apache.kafka.streams.kstream.Named]
+  [this a]
+  (.count this a))
 (defmethod
   group-by
   [:noah.core/stream :noah.core/fn-2]
@@ -1605,31 +2035,22 @@
     a)))
 (defmethod
   group-by
-  [:noah.core/stream :noah.core/fn-2 org.apache.kafka.streams.kstream.Grouped]
+  [:noah.core/stream :noah.core/fn-2 :noah.core/grouped]
   [this a b]
   (.groupBy
    this
    (noah.fn-wrap/key-value-mapper
     a)
-   b))
+   (noah.core/grouped b)))
 (defmethod
   group-by
-  [:noah.core/table :noah.core/fn-2 org.apache.kafka.streams.kstream.Grouped]
+  [:noah.core/table :noah.core/fn-2 :noah.core/grouped]
   [this a b]
   (.groupBy
    this
    (noah.fn-wrap/key-value-mapper
     a)
-   b))
-(defmethod
-  group-by
-  [:noah.core/table :noah.core/fn-2 :noah.core/serialized]
-  [this a b]
-  (.groupBy
-   this
-   (noah.fn-wrap/key-value-mapper
-    a)
-   (noah.core/serialized b)))
+   (noah.core/grouped b)))
 (defmethod
   group-by
   [:noah.core/table :noah.core/fn-2]
@@ -1640,9 +2061,23 @@
     a)))
 (clojure.core/comment
   noah.impl/skipped
-  selectKey
-  "(this (noah.fn-wrap/key-value-mapper a) nil)
- <- [[org.apache.kafka.streams.kstream.KStream this] [org.apache.kafka.streams.kstream.KeyValueMapper a] [org.apache.kafka.streams.kstream.Named b]]")
+  emitStrategy
+  "(this nil)
+ <- [[org.apache.kafka.streams.kstream.SessionWindowedKStream this] [org.apache.kafka.streams.kstream.EmitStrategy a]]")
+(clojure.core/comment
+  noah.impl/skipped
+  emitStrategy
+  "(this nil)
+ <- [[org.apache.kafka.streams.kstream.TimeWindowedKStream this] [org.apache.kafka.streams.kstream.EmitStrategy a]]")
+(defmethod
+  select-key
+  [:noah.core/stream :noah.core/fn-2 org.apache.kafka.streams.kstream.Named]
+  [this a b]
+  (.selectKey
+   this
+   (noah.fn-wrap/key-value-mapper
+    a)
+   b))
 (defmethod
   select-key
   [:noah.core/stream :noah.core/fn-2]
@@ -1669,21 +2104,3 @@
    b
    (noah.core/consumed c)
    d))
-(defmethod
-  add-global-store
-  [org.apache.kafka.streams.StreamsBuilder
-   org.apache.kafka.streams.state.StoreBuilder
-   java.lang.String
-   java.lang.String
-   :noah.core/consumed java.lang.String
-   org.apache.kafka.streams.processor.ProcessorSupplier]
-  [this a b c d e f]
-  (.addGlobalStore
-   this
-   a
-   b
-   c
-   (noah.core/consumed d)
-   e
-   f))
-
