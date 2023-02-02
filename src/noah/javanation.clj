@@ -4,7 +4,7 @@
   (:import
    [org.apache.kafka.common.serialization Serde]
    [org.apache.kafka.streams KafkaStreams StreamsBuilder StreamsConfig Topology$AutoOffsetReset]
-   [org.apache.kafka.streams.kstream Aggregator Consumed ForeachAction GlobalKTable Initializer Joined JoinWindows KeyValueMapper ValueMapperWithKey KGroupedStream KGroupedTable KStream KTable Materialized Materialized$StoreType Merger Predicate Produced Reducer SessionWindowedKStream SessionWindows ValueJoiner ValueMapper Windows Suppressed Grouped TimeWindowedKStream TransformerSupplier Transformer ValueTransformerWithKeySupplier ValueTransformerWithKey ValueTransformerSupplier ValueTransformer Printed]
+   [org.apache.kafka.streams.kstream Aggregator Consumed ForeachAction GlobalKTable Initializer Joined JoinWindows KeyValueMapper ValueMapperWithKey KGroupedStream KGroupedTable KStream KTable Materialized Materialized$StoreType Merger Predicate Produced Reducer SessionWindowedKStream SessionWindows ValueJoiner ValueJoinerWithKey ValueMapper Windows Suppressed Grouped TimeWindowedKStream TransformerSupplier Transformer ValueTransformerWithKeySupplier ValueTransformerWithKey ValueTransformerSupplier ValueTransformer Printed Named]
    [org.apache.kafka.streams.kstream.internals KTableImpl KStreamImpl KGroupedStreamImpl]
    [org.apache.kafka.streams.state KeyValueStore StoreBuilder]
    [org.apache.kafka.streams.processor TopicNameExtractor TimestampExtractor StreamPartitioner ProcessorSupplier]
@@ -24,6 +24,7 @@
    Predicate                       'noah.fn-wrap/predicate
    Reducer                         'noah.fn-wrap/reducer
    ValueJoiner                     'noah.fn-wrap/value-joiner
+   ValueJoinerWithKey              'noah.fn-wrap/value-joiner-with-key
    ValueMapper                     'noah.fn-wrap/value-mapper
    ValueMapperWithKey              'noah.fn-wrap/value-mapper-with-key
    TopicNameExtractor              'noah.fn-wrap/topic-name-extractor
@@ -62,4 +63,5 @@
    Suppressed                      `identity
    ProcessorSupplier               `identity
    Printed                         `identity
+   Named                           `identity
    })

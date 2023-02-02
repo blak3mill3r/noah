@@ -12,7 +12,7 @@
    [org.apache.kafka.common.serialization Serdes Serde]
    [org.apache.kafka.common.utils Bytes]
    [org.apache.kafka.streams KafkaStreams StreamsBuilder StreamsConfig KeyValue]
-   [org.apache.kafka.streams.kstream Aggregator Consumed GlobalKTable Initializer Joined JoinWindows KeyValueMapper ValueMapperWithKey KGroupedStream KGroupedTable KStream KTable Materialized Merger Predicate Produced Reducer Grouped SessionWindowedKStream SessionWindows ValueJoiner ValueMapper Windows TimeWindowedKStream TransformerSupplier Transformer ValueTransformerWithKeySupplier ValueTransformerWithKey ValueTransformerSupplier ValueTransformer ForeachAction]
+   [org.apache.kafka.streams.kstream Aggregator Consumed GlobalKTable Initializer Joined JoinWindows KeyValueMapper ValueMapperWithKey KGroupedStream KGroupedTable KStream KTable Materialized Merger Predicate Produced Reducer Grouped SessionWindowedKStream SessionWindows ValueJoiner ValueJoinerWithKey ValueMapper Windows TimeWindowedKStream TransformerSupplier Transformer ValueTransformerWithKeySupplier ValueTransformerWithKey ValueTransformerSupplier ValueTransformer ForeachAction]
    [org.apache.kafka.streams.kstream.internals KTableImpl KStreamImpl KGroupedStreamImpl]
    [org.apache.kafka.streams.state KeyValueStore StoreBuilder]
    [org.apache.kafka.streams.processor TopicNameExtractor]
@@ -34,6 +34,7 @@
 (derive ValueMapperWithKey     :noah.core/fn-2)
 (derive KeyValueMapper         :noah.core/fn-2)
 (derive ValueJoiner            :noah.core/fn-2)
+(derive ValueJoinerWithKey     :noah.core/fn-3)
 (derive Reducer                :noah.core/fn-2)
 (derive Predicate              :noah.core/fn-2)
 (derive ForeachAction          :noah.core/fn-2)

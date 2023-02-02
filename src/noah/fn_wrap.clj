@@ -6,7 +6,7 @@
   Also, these helpers will pass through an instance of the type unchanged; this means you can use noah with Kafka Streams Java code."
   (:require [camel-snake-kebab.core :refer [->kebab-case]]
             [clojure.reflect :as ref])
-  (:import [org.apache.kafka.streams.kstream ForeachAction Merger ValueJoiner KeyValueMapper ValueMapper Predicate Reducer Initializer Aggregator ValueMapperWithKey]
+  (:import [org.apache.kafka.streams.kstream ForeachAction Merger ValueJoiner ValueJoinerWithKey KeyValueMapper ValueMapper Predicate Reducer Initializer Aggregator ValueMapperWithKey]
            [org.apache.kafka.streams.processor TopicNameExtractor Punctuator TimestampExtractor]))
 
 (defmacro defconverter
@@ -26,6 +26,7 @@
          true (throw (ex-info ~(str "Need a function or an instance of "(.getName (resolve type))) {:got ~'f}))))))
 
 (defconverter ValueJoiner 2)
+(defconverter ValueJoinerWithKey 3)
 (defconverter ValueMapper 1)
 (defconverter KeyValueMapper 2)
 (defconverter ValueMapperWithKey 2)
