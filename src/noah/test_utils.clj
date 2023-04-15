@@ -36,7 +36,9 @@
 
 (defn mock-topic [driver topic k-ser v-ser]
   (->MockTopic driver topic k-ser v-ser
-               (.createInputTopic driver topic (serdes k-ser) (serdes v-ser))))
+               (.createInputTopic driver topic
+                                  (.serializer (serdes k-ser))
+                                  (.serializer (serdes v-ser)))))
 
 (defn topology-fixture
   [topology properties]
