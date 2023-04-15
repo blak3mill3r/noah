@@ -16,13 +16,17 @@
                        (-> (fn [p [k v]] (do (.setProperty p k v) p))
                            (reduce (java.util.Properties.) props))))
 
-(defn output-topic-seq
+(defn create-output-topic
   [topic k-serde v-serde]
-  (lazy-seq (cons (when-let [record (.readOutput *driver* topic
-                                                 (.deserializer (serdes k-serde))
-                                                 (.deserializer (serdes v-serde)))]
+  (.createOutputTopic topic
+                      (.deserializer (serdes k-serde))
+                      (.deserializer (serdes v-serde))))
+
+(defn output-topic-seq
+  [output-topic]
+  (lazy-seq (cons (when-let [record (.readKeyValue output-topic)]
                     ((juxt (memfn key) (memfn value)) record))
-                  (output-topic-seq topic k-serde v-serde))))
+                  (output-topic-seq output-topic))))
 
 (deftype MockTopic [driver topic k-ser v-ser test-input-topic]
   clojure.lang.IFn
