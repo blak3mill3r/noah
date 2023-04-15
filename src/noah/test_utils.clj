@@ -12,12 +12,6 @@
 (def ^:dynamic *topic* nil)
 (def ^:dynamic *store* nil)
 
-(defn record-factory
-  [topic key-ser val-ser]
-  (ConsumerRecordFactory. topic
-                          (.serializer (serdes key-ser))
-                          (.serializer (serdes val-ser))))
-
 (defn topology-test-driver [topology props]
   (TopologyTestDriver. topology
                        (-> (fn [p [k v]] (do (.setProperty p k v) p))
@@ -31,14 +25,10 @@
                     ((juxt (memfn key) (memfn value)) record))
                   (output-topic-seq topic k-serde v-serde))))
 
-(defprotocol BackToTheFuture (advance-time [this ms])) ;; 1.21 gigawatts = 1,620,000 horsepower, use caution
-
-(deftype MockTopic [driver topic rf]
+(deftype MockTopic [driver topic k-ser v-ser test-input-topic]
   clojure.lang.IFn
   (invoke [this k v]
-    (.pipeInput driver (.create rf topic k v)))
-  BackToTheFuture
-  (advance-time [this ms] (.advanceTimeMs rf ms)))
+    (.pipeInput test-input-topic k v)))
 
 (defn advance-wall-clock-time
   [ms]
@@ -46,7 +36,8 @@
   (.advanceWallClockTime *driver* (Duration/ofMillis ms)))
 
 (defn mock-topic [driver topic k-ser v-ser]
-  (->MockTopic driver topic (record-factory topic k-ser v-ser)))
+  (->MockTopic driver topic k-ser v-ser
+               (.createInputTopic driver topic k-ser v-ser)))
 
 (defn topology-fixture
   [topology properties]
