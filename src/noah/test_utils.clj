@@ -2,7 +2,6 @@
   (:require [noah.core :refer [ serdes ]])
   (:import
    [org.apache.kafka.streams TopologyTestDriver StreamsConfig ]
-   [org.apache.kafka.streams.test ConsumerRecordFactory]
    [org.apache.kafka.common.serialization Serdes]
    [java.time Duration]
    ))
